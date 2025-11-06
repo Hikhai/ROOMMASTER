@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Sửa phòng {{ room.room_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit"></i> Sửa phòng: {{ room.room_number }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.room_number.label(class="form-label required") }}
+                            {{ form.room_number(class="form-control") }}
+                            {% if form.room_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.room_number.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.floor.label(class="form-label") }}
+                            {{ form.floor(class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.area.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.area(class="form-control") }}
+                                <span class="input-group-text">m²</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.price.label(class="form-label required") }}
+                            <div class="input-group">
+                                {{ form.price(class="form-control") }}
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            {% if form.price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.price.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.status.label(class="form-label required") }}
+                        {{ form.status(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows="3") }}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('rooms.list_rooms') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        {{ form.submit(class="btn btn-warning") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required:after {
+        content: " *";
+        color: red;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Thêm phòng{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus-circle"></i> Thêm phòng mới
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <!-- Số phòng -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.room_number.label(class="form-label required") }}
+                            {{ form.room_number(class="form-control", placeholder="Ví dụ: P101") }}
+                            {% if form.room_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.room_number.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Tầng -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.floor.label(class="form-label") }}
+                            {{ form.floor(class="form-control", placeholder="Ví dụ: 1") }}
+                            {% if form.floor.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.floor.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Diện tích -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.area.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.area(class="form-control", placeholder="Ví dụ: 25") }}
+                                <span class="input-group-text">m²</span>
+                            </div>
+                            {% if form.area.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.area.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Giá phòng -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.price.label(class="form-label required") }}
+                            <div class="input-group">
+                                {{ form.price(class="form-control", placeholder="Ví dụ: 2500000") }}
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            {% if form.price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.price.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Trạng thái -->
+                    <div class="mb-3">
+                        {{ form.status.label(class="form-label required") }}
+                        {{ form.status(class="form-select") }}
+                        {% if form.status.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.status.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mô tả -->
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows="3", 
+                            placeholder="Mô tả về phòng, tiện nghi...") }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.description.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('rooms.list_rooms') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required:after {
+        content: " *";
+        color: red;
+    }
+</style>
+{% endblock %}

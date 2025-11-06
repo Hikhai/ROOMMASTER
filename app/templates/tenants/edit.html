@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Sửa thông tin {{ tenant.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit"></i> Sửa thông tin: {{ tenant.full_name }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Hiển thị lỗi validation tổng quát -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Lỗi nhập liệu:</strong>
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items() %}
+                                {% if field != 'csrf_token' %}
+                                    {% for error in errors %}
+                                        <li>{{ form[field].label.text }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-id-card"></i> Thông tin cá nhân
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.full_name.label(class="form-label required") }}
+                            {{ form.full_name(class="form-control") }}
+                            {% if form.full_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.full_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.id_number.label(class="form-label required") }}
+                            {{ form.id_number(class="form-control") }}
+                            {% if form.id_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.id_number.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone.label(class="form-label required") }}
+                            {{ form.phone(class="form-control") }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.phone.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", placeholder="email@example.com") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.date_of_birth.label(class="form-label") }}
+                            {{ form.date_of_birth(class="form-control", placeholder="dd/mm/yyyy") }}
+                            {% if form.date_of_birth.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.date_of_birth.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Định dạng: dd/mm/yyyy</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.hometown.label(class="form-label") }}
+                            {{ form.hometown(class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-home"></i> Thông tin thuê trọ
+                    </h5>
+                    
+                    <div class="mb-3">
+                        {{ form.room_id.label(class="form-label required") }}
+                        {{ form.room_id(class="form-select form-select-lg") }}
+                        <small class="text-muted">Đổi phòng sẽ tự động cập nhật trạng thái phòng cũ và mới</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.move_in_date.label(class="form-label required") }}
+                            {{ form.move_in_date(class="form-control", placeholder="dd/mm/yyyy") }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.move_out_date.label(class="form-label") }}
+                            {{ form.move_out_date(class="form-control", placeholder="dd/mm/yyyy") }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.deposit.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.deposit(class="form-control", min="0") }}
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            {% if form.deposit.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.deposit.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Người thuê chính -->
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                {{ form.is_main_tenant(class="form-check-input") }}
+                                {{ form.is_main_tenant.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <!-- Trạng thái -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    <!-- Ghi chú -->
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control", rows="3") }}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('tenants.list_tenants') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        {{ form.submit(class="btn btn-warning btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required:after {
+        content: " *";
+        color: red;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Khởi tạo date pickers
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr('input[name="date_of_birth"]', {
+        dateFormat: 'd/m/Y',
+        allowInput: true,
+        locale: {
+            firstDayOfWeek: 1
+        }
+    });
+    
+    flatpickr('input[name="move_in_date"]', {
+        dateFormat: 'd/m/Y',
+        allowInput: true,
+        locale: {
+            firstDayOfWeek: 1
+        }
+    });
+    
+    flatpickr('input[name="move_out_date"]', {
+        dateFormat: 'd/m/Y',
+        allowInput: true,
+        locale: {
+            firstDayOfWeek: 1
+        }
+    });
+});
+</script>
+{% endblock %}

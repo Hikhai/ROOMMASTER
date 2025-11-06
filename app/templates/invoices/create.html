@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo hóa đơn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-plus-circle"></i> Tạo hóa đơn mới</h2>
+                <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="invoiceForm">
+                        <!-- Thông tin cơ bản -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Phòng <span class="text-danger">*</span></label>
+                                <select name="room_id" id="room_id" class="form-select" required>
+                                    <option value="">-- Chọn phòng --</option>
+                                    {% for room in rooms %}
+                                    <option value="{{ room.id }}" data-price="{{ room.price }}">
+                                        {{ room.room_number }} - {{ "{:,.0f}".format(room.price) }}đ/tháng
+                                        {% if room.current_tenant %}
+                                        ({{ room.current_tenant.full_name }})
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not rooms %}
+                                <small class="text-danger">Không có phòng nào đang cho thuê!</small>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Tháng <span class="text-danger">*</span></label>
+                                <select name="month" class="form-select" required>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>Tháng {{ m }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Năm <span class="text-danger">*</span></label>
+                                <select name="year" class="form-select" required>
+                                    {% for y in range(2024, 2027) %}
+                                    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Điện -->
+                        <h5 class="mb-3"><i class="fas fa-bolt text-warning"></i> Tiền điện</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Số cũ (kWh)</label>
+                                <input type="number" name="electric_old" id="electric_old" 
+                                       class="form-control" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Số mới (kWh)</label>
+                                <input type="number" name="electric_new" id="electric_new" 
+                                       class="form-control" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Đơn giá (đ/kWh)</label>
+                                <input type="number" name="electric_unit_price" id="electric_unit_price" 
+                                       class="form-control" value="3500" step="100" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Thành tiền</label>
+                                <input type="text" id="electric_cost" class="form-control" readonly value="0đ">
+                            </div>
+                        </div>
+
+                        <!-- Nước -->
+                        <h5 class="mb-3"><i class="fas fa-tint text-primary"></i> Tiền nước</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Số cũ (m³)</label>
+                                <input type="number" name="water_old" id="water_old" 
+                                       class="form-control" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Số mới (m³)</label>
+                                <input type="number" name="water_new" id="water_new" 
+                                       class="form-control" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Đơn giá (đ/m³)</label>
+                                <input type="number" name="water_unit_price" id="water_unit_price" 
+                                       class="form-control" value="20000" step="1000" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Thành tiền</label>
+                                <input type="text" id="water_cost" class="form-control" readonly value="0đ">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Phí khác & Tổng -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-ellipsis-h"></i> Phí khác 
+                                    <small class="text-muted">(Rác, internet, xe...)</small>
+                                </label>
+                                <input type="number" name="other_fees" id="other_fees" 
+                                       class="form-control" value="0" step="1000" min="0">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" name="notes" class="form-control" 
+                                       placeholder="VD: Rác 20k, Internet 100k, Xe 50k">
+                            </div>
+                        </div>
+
+                        <!-- Tổng tiền -->
+                        <div class="alert alert-success">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>Tiền phòng:</strong>
+                                    <div id="display_room_price" class="h5 mb-0">0đ</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Tiền điện:</strong>
+                                    <div id="display_electric" class="h5 mb-0">0đ</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Tiền nước:</strong>
+                                    <div id="display_water" class="h5 mb-0">0đ</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>TỔNG CỘNG:</strong>
+                                    <div id="total_amount" class="h4 mb-0 text-danger">0đ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="text-end">
+                            <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Tạo hóa đơn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tự động tính toán khi người dùng nhập
+document.addEventListener('DOMContentLoaded', function() {
+    const roomSelect = document.getElementById('room_id');
+    const electricOld = document.getElementById('electric_old');
+    const electricNew = document.getElementById('electric_new');
+    const electricPrice = document.getElementById('electric_unit_price');
+    const waterOld = document.getElementById('water_old');
+    const waterNew = document.getElementById('water_new');
+    const waterPrice = document.getElementById('water_unit_price');
+    const otherFees = document.getElementById('other_fees');
+    
+    // Khi chọn phòng → tự động lấy giá phòng
+    roomSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const roomPrice = parseFloat(selectedOption.dataset.price || 0);
+        document.getElementById('display_room_price').textContent = formatCurrency(roomPrice);
+        calculateTotal();
+    });
+    
+    // Tính toán khi thay đổi bất kỳ trường nào
+    [electricOld, electricNew, electricPrice, waterOld, waterNew, waterPrice, otherFees].forEach(function(input) {
+        input.addEventListener('input', calculateTotal);
+    });
+    
+    function calculateTotal() {
+        // Tiền phòng
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        const roomPrice = selectedOption ? parseFloat(selectedOption.dataset.price || 0) : 0;
+        
+        // Tiền điện
+        const elecOld = parseFloat(electricOld.value || 0);
+        const elecNew = parseFloat(electricNew.value || 0);
+        const elecPrice = parseFloat(electricPrice.value || 0);
+        const elecUsage = Math.max(0, elecNew - elecOld);
+        const elecCost = elecUsage * elecPrice;
+        
+        // Tiền nước
+        const watOld = parseFloat(waterOld.value || 0);
+        const watNew = parseFloat(waterNew.value || 0);
+        const watPrice = parseFloat(waterPrice.value || 0);
+        const watUsage = Math.max(0, watNew - watOld);
+        const watCost = watUsage * watPrice;
+        
+        // Phí khác
+        const other = parseFloat(otherFees.value || 0);
+        
+        // Tổng
+        const total = roomPrice + elecCost + watCost + other;
+        
+        // Hiển thị
+        document.getElementById('electric_cost').value = formatCurrency(elecCost);
+        document.getElementById('water_cost').value = formatCurrency(watCost);
+        document.getElementById('display_electric').textContent = formatCurrency(elecCost);
+        document.getElementById('display_water').textContent = formatCurrency(watCost);
+        document.getElementById('total_amount').textContent = formatCurrency(total);
+    }
+    
+    function formatCurrency(value) {
+        return Math.round(value).toLocaleString('vi-VN') + 'đ';
+    }
+    
+    // Tính toán ban đầu
+    calculateTotal();
+});
+</script>
+{% endblock %}

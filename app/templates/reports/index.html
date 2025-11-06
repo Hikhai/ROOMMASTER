@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-graph-up"></i> Báo cáo & Thống kê</h1>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reports.revenue') }}" class="text-decoration-none">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-cash-stack display-1"></i>
+                    <h5 class="card-title mt-3">Báo cáo doanh thu</h5>
+                    <p class="card-text">Thống kê doanh thu theo tháng, năm</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reports.occupancy') }}" class="text-decoration-none">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-building display-1"></i>
+                    <h5 class="card-title mt-3">Tình trạng phòng</h5>
+                    <p class="card-text">Tỷ lệ lấp đầy, phòng trống</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reports.tenants') }}" class="text-decoration-none">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-1"></i>
+                    <h5 class="card-title mt-3">Thống kê khách thuê</h5>
+                    <p class="card-text">Khách thuê mới, đã chuyển đi</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reports.overdue') }}" class="text-decoration-none">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle display-1"></i>
+                    <h5 class="card-title mt-3">Hóa đơn quá hạn</h5>
+                    <p class="card-text">Danh sách nợ, quá hạn</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

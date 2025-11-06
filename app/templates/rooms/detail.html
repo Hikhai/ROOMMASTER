@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Chi tiết phòng {{ room.room_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Thông tin phòng -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Thông tin phòng
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th width="40%">Số phòng:</th>
+                        <td><strong>{{ room.room_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Tầng:</th>
+                        <td>{{ room.floor }}</td>
+                    </tr>
+                    <tr>
+                        <th>Diện tích:</th>
+                        <td>{{ room.area }} m²</td>
+                    </tr>
+                    <tr>
+                        <th>Giá phòng:</th>
+                        <td><strong class="text-success">{{ "{:,.0f}".format(room.price) }} đ</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái:</th>
+                        <td>
+                            {% if room.status == 'available' %}
+                                <span class="badge bg-success">Trống</span>
+                            {% elif room.status == 'occupied' %}
+                                <span class="badge bg-danger">Đã thuê</span>
+                            {% else %}
+                                <span class="badge bg-warning">Sửa chữa</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                {% if room.description %}
+                <hr>
+                <p class="mb-0"><small class="text-muted">{{ room.description }}</small></p>
+                {% endif %}
+            </div>
+            {% if current_user.role in ['admin', 'manager'] %}
+            <div class="card-footer">
+                <a href="{{ url_for('rooms.edit_room', id=room.id) }}" class="btn btn-warning btn-sm w-100">
+                    <i class="fas fa-edit"></i> Chỉnh sửa
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Khách thuê hiện tại -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user"></i> Khách thuê hiện tại
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if current_tenant %}
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Họ tên:</th>
+                        <td>{{ current_tenant.full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Số CCCD:</th>
+                        <td>{{ current_tenant.id_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Số điện thoại:</th>
+                        <td>{{ current_tenant.phone }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ current_tenant.email if current_tenant.email else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ngày vào ở:</th>
+                        <td>{{ current_tenant.move_in_date.strftime('%d/%m/%Y') if current_tenant.move_in_date else '-' }}</td>
+                    </tr>
+                </table>
+                {% else %}
+                <p class="text-muted text-center py-3">
+                    <i class="fas fa-user-slash fa-2x mb-2"></i><br>
+                    Phòng chưa có khách thuê
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Lịch sử hóa đơn -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice"></i> Lịch sử hóa đơn gần đây
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tháng/Năm</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td>{{ invoice.month }}/{{ invoice.year }}</td>
+                                <td>{{ "{:,.0f}".format(invoice.total_amount) }} đ</td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Chưa thanh toán</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">Chưa có hóa đơn</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('rooms.list_rooms') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+    </a>
+</div>
+{% endblock %}

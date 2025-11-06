@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách khách thuê - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h1><i class="bi bi-people"></i> Danh sách khách thuê</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('tenants.add_tenant') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Thêm khách thuê
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('tenants.list_tenants') }}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>Tất cả</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Đang ở</option>
+                    <option value="moved_out" {% if status == 'moved_out' %}selected{% endif %}>Đã chuyển đi</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tenants List -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>CMND/CCCD</th>
+                        <th>Phòng</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày vào</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('tenants.detail', id=tenant.id) }}">
+                                <strong>{{ tenant.full_name }}</strong>
+                            </a>
+                            {% if tenant.is_main_tenant %}
+                                <span class="badge bg-primary">Chính</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ tenant.id_number }}</td>
+                        <td>
+                            <a href="{{ url_for('rooms.detail', id=tenant.room.id) }}">
+                                {{ tenant.room.room_number }}
+                            </a>
+                        </td>
+                        <td>{{ tenant.phone if tenant.phone else '-' }}</td>
+                        <td>{{ tenant.move_in_date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if tenant.status == 'active' %}
+                                <span class="badge bg-success">Đang ở</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Đã chuyển đi</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('tenants.detail', id=tenant.id) }}" 
+                               class="btn btn-sm btn-info" title="Xem">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('tenants.edit_tenant', id=tenant.id) }}" 
+                               class="btn btn-sm btn-warning" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Không có khách thuê nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tenants.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if tenants.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('tenants.list_tenants', page=tenants.prev_num, status=status) }}">
+                        Trước
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for p in tenants.iter_pages() %}
+                    {% if p %}
+                        <li class="page-item {% if p == tenants.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('tenants.list_tenants', page=p, status=status) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if tenants.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('tenants.list_tenants', page=tenants.next_num, status=status) }}">
+                        Sau
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

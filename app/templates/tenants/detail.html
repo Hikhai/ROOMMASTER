@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Chi tiết {{ tenant.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Thông tin cá nhân -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user"></i> Thông tin cá nhân
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle fa-5x text-muted"></i>
+                    <h4 class="mt-2">{{ tenant.full_name }}</h4>
+                    {% if tenant.status == 'active' %}
+                        <span class="badge bg-success">Đang ở</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Đã chuyển đi</span>
+                    {% endif %}
+                </div>
+                
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="40%">Số CCCD:</th>
+                        <td>{{ tenant.id_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Số điện thoại:</th>
+                        <td>
+                            <a href="tel:{{ tenant.phone }}">{{ tenant.phone }}</a>
+                        </td>
+                    </tr>
+                    {% if tenant.date_of_birth %}
+                    <tr>
+                        <th>Ngày sinh:</th>
+                        <td>{{ tenant.date_of_birth.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if tenant.hometown %}
+                    <tr>
+                        <th>Quê quán:</th>
+                        <td>{{ tenant.hometown }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        
+        <!-- Thông tin thuê trọ -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-home"></i> Thông tin thuê trọ
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="40%">Phòng:</th>
+                        <td>
+                            {% if tenant.room %}
+                                <h4><span class="badge bg-primary">{{ tenant.room.room_number }}</span></h4>
+                            {% else %}
+                                <span class="text-muted">---</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if tenant.room %}
+                    <tr>
+                        <th>Giá phòng:</th>
+                        <td>{{ "{:,.0f}".format(tenant.room.price) }} đ/tháng</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Ngày vào ở:</th>
+                        <td>{{ tenant.move_in_date.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% if tenant.contract_end_date %}
+                    <tr>
+                        <th>Hết hợp đồng:</th>
+                        <td>{{ tenant.contract_end_date.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Tiền cọc:</th>
+                        <td><strong class="text-success">{{ "{:,.0f}".format(tenant.deposit) }} đ</strong></td>
+                    </tr>
+                </table>
+            </div>
+            {% if current_user.role in ['admin', 'manager'] %}
+            <div class="card-footer">
+                <a href="{{ url_for('tenants.edit_tenant', id=tenant.id) }}" class="btn btn-warning btn-sm w-100 mb-2">
+                    <i class="fas fa-edit"></i> Chỉnh sửa
+                </a>
+                {% if tenant.status == 'active' %}
+                <a href="{{ url_for('tenants.checkout_tenant', id=tenant.id) }}" 
+                   class="btn btn-secondary btn-sm w-100"
+                   onclick="return confirm('Xác nhận {{ tenant.full_name }} đã chuyển đi?')">
+                    <i class="fas fa-sign-out-alt"></i> Đánh dấu chuyển đi
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Công nợ -->
+        {% if total_debt > 0 %}
+        <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-triangle"></i> Công nợ</h5>
+            <p class="mb-0">Tổng nợ: <strong>{{ "{:,.0f}".format(total_debt) }} đ</strong></p>
+        </div>
+        {% endif %}
+        
+        <!-- Lịch sử hóa đơn -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice"></i> Lịch sử hóa đơn
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tháng/Năm</th>
+                                <th>Phòng</th>
+                                <th>Tổng tiền</th>
+                                <th>Đã trả</th>
+                                <th>Còn lại</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr class="clickable-row" data-href="{{ url_for('invoices.view_invoice', id=invoice.id) }}">
+                                <td>{{ invoice.month }}/{{ invoice.year }}</td>
+                                <td>{{ invoice.room.room_number }}</td>
+                                <td>{{ "{:,.0f}".format(invoice.total_amount) }} đ</td>
+                                <td>{{ "{:,.0f}".format(invoice.paid_amount) }} đ</td>
+                                <td>
+                                    {% if invoice.remaining_amount > 0 %}
+                                        <span class="text-danger">{{ "{:,.0f}".format(invoice.remaining_amount) }} đ</span>
+                                    {% else %}
+                                        <span class="text-success">0 đ</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                    {% elif invoice.status == 'partial' %}
+                                        <span class="badge bg-warning">Trả 1 phần</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Chưa trả</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">Chưa có hóa đơn</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('tenants.list_tenants') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+    </a>
+</div>
+{% endblock %}

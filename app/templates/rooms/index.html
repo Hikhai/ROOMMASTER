@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách phòng - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h1><i class="bi bi-door-open"></i> Danh sách phòng</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('rooms.add_room') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Thêm phòng mới
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('rooms.list_rooms') }}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>Tất cả</option>
+                    <option value="available" {% if status == 'available' %}selected{% endif %}>Còn trống</option>
+                    <option value="occupied" {% if status == 'occupied' %}selected{% endif %}>Đã cho thuê</option>
+                    <option value="maintenance" {% if status == 'maintenance' %}selected{% endif %}>Bảo trì</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rooms List -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Số phòng</th>
+                        <th>Tầng</th>
+                        <th>Diện tích</th>
+                        <th>Giá thuê</th>
+                        <th>Tiền cọc</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in rooms.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('rooms.detail', id=room.id) }}">
+                                <strong>{{ room.room_number }}</strong>
+                            </a>
+                        </td>
+                        <td>{{ room.floor if room.floor else '-' }}</td>
+                        <td>{{ room.area if room.area else '-' }} m²</td>
+                        <td>{{ '{:,.0f}'.format(room.price) }} VNĐ</td>
+                        <td>{{ '{:,.0f}'.format(room.deposit) }} VNĐ</td>
+                        <td>
+                            {% if room.status == 'available' %}
+                                <span class="badge bg-success">Còn trống</span>
+                            {% elif room.status == 'occupied' %}
+                                <span class="badge bg-warning">Đã cho thuê</span>
+                            {% elif room.status == 'maintenance' %}
+                                <span class="badge bg-danger">Bảo trì</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('rooms.detail', id=room.id) }}" 
+                               class="btn btn-sm btn-info" title="Xem chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('rooms.edit_room', id=room.id) }}" 
+                               class="btn btn-sm btn-warning" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Không có phòng nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if rooms.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if rooms.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('rooms.list_rooms', page=rooms.prev_num, status=status) }}">
+                        Trước
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for p in rooms.iter_pages() %}
+                    {% if p %}
+                        <li class="page-item {% if p == rooms.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('rooms.list_rooms', page=p, status=status) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if rooms.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('rooms.list_rooms', page=rooms.next_num, status=status) }}">
+                        Sau
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

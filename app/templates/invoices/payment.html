@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Thanh toán hóa đơn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-money-bill-wave"></i> Thanh toán hóa đơn</h2>
+                <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <!-- Thông tin hóa đơn -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Thông tin hóa đơn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Phòng:</strong> {{ invoice.room.room_number }}</p>
+                            <p><strong>Khách thuê:</strong> 
+                                {% if invoice.room.current_tenant %}
+                                    {{ invoice.room.current_tenant.full_name }}
+                                {% else %}
+                                    <span class="text-muted">Chưa có</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tháng/Năm:</strong> {{ invoice.month }}/{{ invoice.year }}</p>
+                            <p><strong>Trạng thái:</strong>
+                                {% if invoice.status == 'paid' %}
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                {% elif invoice.status == 'partial' %}
+                                    <span class="badge bg-warning">Thanh toán 1 phần</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Chưa thanh toán</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-secondary text-center">
+                                <small>Tổng tiền</small>
+                                <h4 class="mb-0">{{ "{:,.0f}".format(invoice.total_amount) }}đ</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-success text-center">
+                                <small>Đã thanh toán</small>
+                                <h4 class="mb-0">{{ "{:,.0f}".format(invoice.paid_amount) }}đ</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-danger text-center">
+                                <small>Còn nợ</small>
+                                <h4 class="mb-0">{{ "{:,.0f}".format(invoice.remaining_amount) }}đ</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form thanh toán -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Thêm thanh toán mới</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Số tiền thanh toán <span class="text-danger">*</span></label>
+                                <input type="number" name="amount" id="amount" class="form-control" 
+                                       value="{{ invoice.remaining_amount }}" 
+                                       step="1000" min="0" max="{{ invoice.remaining_amount }}" required>
+                                <small class="text-muted">
+                                    Tối đa: {{ "{:,.0f}".format(invoice.remaining_amount) }}đ
+                                </small>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Phương thức <span class="text-danger">*</span></label>
+                                <select name="payment_method" class="form-select" required>
+                                    <option value="cash">Tiền mặt</option>
+                                    <option value="bank_transfer">Chuyển khoản</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày thanh toán <span class="text-danger">*</span></label>
+                                <input type="date" name="payment_date" class="form-control" 
+                                       value="{{ now.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" name="notes" class="form-control" 
+                                       placeholder="VD: Khách thanh toán tiền mặt">
+                            </div>
+                        </div>
+
+                        <!-- Nút thanh toán nhanh -->
+                        <div class="mb-3">
+                            <label class="form-label">Thanh toán nhanh:</label><br>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnPayFull">
+                                Thanh toán hết ({{ "{:,.0f}".format(invoice.remaining_amount) }}đ)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnPayHalf">
+                                Thanh toán 1/2 ({{ "{:,.0f}".format(invoice.remaining_amount / 2) }}đ)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnPayRoom">
+                                Thanh toán tiền phòng ({{ "{:,.0f}".format(invoice.room_price) }}đ)
+                            </button>
+                        </div>
+
+                        <hr>
+
+                        <div class="text-end">
+                            <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Xác nhận thanh toán
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lịch sử thanh toán -->
+            {% if invoice.payments.count() > 0 %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Lịch sử thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Số tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in invoice.payments.all()|sort(attribute='payment_date', reverse=True) %}
+                                <tr>
+                                    <td>{{ payment.payment_date.strftime('%d/%m/%Y') }}</td>
+                                    <td class="text-success"><strong>{{ "{:,.0f}".format(payment.amount) }}đ</strong></td>
+                                    <td>
+                                        {% if payment.payment_method == 'cash' %}
+                                            <span class="badge bg-success">Tiền mặt</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Chuyển khoản</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.notes or '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountInput = document.getElementById('amount');
+    const remaining = parseFloat('{{ invoice.remaining_amount }}');
+    const half = parseFloat('{{ invoice.remaining_amount / 2 }}');
+    const roomPrice = parseFloat('{{ invoice.room_price }}');
+    
+    // Nút thanh toán hết
+    const btnFull = document.getElementById('btnPayFull');
+    if (btnFull) {
+        btnFull.addEventListener('click', function() {
+            amountInput.value = Math.round(remaining);
+        });
+    }
+    
+    // Nút thanh toán 1/2
+    const btnHalf = document.getElementById('btnPayHalf');
+    if (btnHalf) {
+        btnHalf.addEventListener('click', function() {
+            amountInput.value = Math.round(half);
+        });
+    }
+    
+    // Nút thanh toán tiền phòng
+    const btnRoom = document.getElementById('btnPayRoom');
+    if (btnRoom) {
+        btnRoom.addEventListener('click', function() {
+            amountInput.value = Math.round(roomPrice);
+        });
+    }
+});
+</script>
+{% endblock %}

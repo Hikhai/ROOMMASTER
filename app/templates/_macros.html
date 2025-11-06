@@ -1,0 +1,42 @@
+{# 
+============================================
+MACROS - Helper functions cho templates
+============================================
+Sử dụng: {% import '_macros.html' as macros %}
+#}
+
+{# Kiểm tra quyền admin #}
+{% macro is_admin() -%}
+    {{ current_user.role == 'admin' }}
+{%- endmacro %}
+
+{# Kiểm tra quyền manager hoặc admin #}
+{% macro is_manager_or_admin() -%}
+    {{ current_user.role in ['admin', 'manager'] }}
+{%- endmacro %}
+
+{# Kiểm tra quyền viewer #}
+{% macro is_viewer() -%}
+    {{ current_user.role == 'viewer' }}
+{%- endmacro %}
+
+{# 
+HỆ THỐNG PHÂN QUYỀN:
+
+1. ADMIN (Quản trị viên):
+   - Tất cả quyền của Manager
+   - Quản lý nhân viên (thêm/sửa/xóa user)
+   - Xóa hóa đơn, xóa phòng, xóa khách thuê
+
+2. MANAGER (Quản lý):
+   - Xem tất cả dữ liệu
+   - Thêm/sửa phòng, khách thuê, hóa đơn
+   - Ghi nhận thanh toán
+   - Tạo hóa đơn hàng loạt
+   - Xem báo cáo
+
+3. VIEWER (Chỉ xem):
+   - Chỉ được xem dữ liệu
+   - Không được thêm/sửa/xóa
+   - Không được tạo hóa đơn, ghi nhận thanh toán
+#}

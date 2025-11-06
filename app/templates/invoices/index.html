@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách hóa đơn - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h1><i class="bi bi-receipt"></i> Danh sách hóa đơn</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('invoices.create_invoice') }}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-plus"></i> Tạo hóa đơn mới
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('invoices.list_invoices') }}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>Tất cả</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Chờ thanh toán</option>
+                    <option value="paid" {% if status == 'paid' %}selected{% endif %}>Đã thanh toán</option>
+                    <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Quá hạn</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Invoices List -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Phòng</th>
+                        <th>Tháng/Năm</th>
+                        <th>Tổng tiền</th>
+                        <th>Hạn thanh toán</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('invoices.detail', id=invoice.id) }}">
+                                <strong>{{ invoice.invoice_number }}</strong>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('rooms.detail', id=invoice.room.id) }}">
+                                {{ invoice.room.room_number }}
+                            </a>
+                        </td>
+                        <td>{{ invoice.month }}/{{ invoice.year }}</td>
+                        <td><strong>{{ '{:,.0f}'.format(invoice.total_amount) }} VNĐ</strong></td>
+                        <td>
+                            {% if invoice.due_date %}
+                                {{ invoice.due_date.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if invoice.status == 'paid' %}
+                                <span class="badge bg-success">Đã thanh toán</span>
+                            {% elif invoice.status == 'pending' %}
+                                <span class="badge bg-warning">Chờ thanh toán</span>
+                            {% elif invoice.status == 'overdue' %}
+                                <span class="badge bg-danger">Quá hạn</span>
+                            {% elif invoice.status == 'cancelled' %}
+                                <span class="badge bg-secondary">Đã hủy</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('invoices.detail', id=invoice.id) }}" 
+                               class="btn btn-sm btn-info" title="Xem">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if invoice.status != 'paid' %}
+                            <a href="{{ url_for('invoices.payment_invoice', id=invoice.id) }}" 
+                               class="btn btn-sm btn-success" title="Thanh toán">
+                                <i class="bi bi-cash"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Không có hóa đơn nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if invoices.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if invoices.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('invoices.list_invoices', page=invoices.prev_num, status=status) }}">
+                        Trước
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for p in invoices.iter_pages() %}
+                    {% if p %}
+                        <li class="page-item {% if p == invoices.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('invoices.list_invoices', page=p, status=status) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if invoices.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('invoices.list_invoices', page=invoices.next_num, status=status) }}">
+                        Sau
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

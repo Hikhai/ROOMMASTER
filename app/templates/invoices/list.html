@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách hóa đơn{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-invoice-dollar"></i> Danh sách hóa đơn</h2>
+        {% if current_user.role in ['admin', 'manager'] %}
+        <div>
+            <a href="{{ url_for('invoices.create_bulk_invoices') }}" class="btn btn-info">
+                <i class="fas fa-layer-group"></i> Tạo hàng loạt
+            </a>
+            <a href="{{ url_for('invoices.create_invoice') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Tạo hóa đơn mới
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('invoices.list_invoices') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        <option value="unpaid" {% if status == 'unpaid' %}selected{% endif %}>Chưa thanh toán</option>
+                        <option value="partial" {% if status == 'partial' %}selected{% endif %}>Thanh toán 1 phần</option>
+                        <option value="paid" {% if status == 'paid' %}selected{% endif %}>Đã thanh toán</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Tháng</label>
+                    <select name="month" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if month == m %}selected{% endif %}>Tháng {{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Năm</label>
+                    <select name="year" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        {% for y in range(2024, 2027) %}
+                        <option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Số phòng</label>
+                    <input type="text" name="room_number" class="form-control" 
+                           placeholder="VD: P01" value="{{ room_number }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách -->
+    <div class="card">
+        <div class="card-body">
+            {% if invoices.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Phòng</th>
+                            <th>Tháng/Năm</th>
+                            <th>Tiền phòng</th>
+                            <th>Điện</th>
+                            <th>Nước</th>
+                            <th>Phí khác</th>
+                            <th>Tổng cộng</th>
+                            <th>Đã trả</th>
+                            <th>Còn nợ</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices.items %}
+                        <tr class="clickable-row" data-href="{{ url_for('invoices.view_invoice', id=invoice.id) }}">
+                            <td>
+                                <strong>{{ invoice.room.room_number }}</strong>
+                                {% if invoice.room.current_tenant %}
+                                <br><small class="text-muted">{{ invoice.room.current_tenant.full_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ invoice.month }}/{{ invoice.year }}</td>
+                            <td>{{ "{:,.0f}".format(invoice.room_price) }}đ</td>
+                            <td>{{ "{:,.0f}".format(invoice.electric_cost) }}đ</td>
+                            <td>{{ "{:,.0f}".format(invoice.water_cost) }}đ</td>
+                            <td>{{ "{:,.0f}".format(invoice.other_fees) }}đ</td>
+                            <td><strong>{{ "{:,.0f}".format(invoice.total_amount) }}đ</strong></td>
+                            <td class="text-success">{{ "{:,.0f}".format(invoice.paid_amount) }}đ</td>
+                            <td class="text-danger">{{ "{:,.0f}".format(invoice.remaining_amount) }}đ</td>
+                            <td>
+                                {% if invoice.status == 'paid' %}
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                {% elif invoice.status == 'partial' %}
+                                    <span class="badge bg-warning">Thanh toán 1 phần</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Chưa thanh toán</span>
+                                {% endif %}
+                            </td>
+                            <td class="action-cell">
+                                <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}" 
+                                   class="btn btn-sm btn-info" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if current_user.role in ['admin', 'manager'] and invoice.status != 'paid' %}
+                                <a href="{{ url_for('invoices.edit_invoice', id=invoice.id) }}" 
+                                   class="btn btn-sm btn-warning" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phân trang -->
+            {% if invoices.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if invoices.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('invoices.list_invoices', page=invoices.prev_num, status=status, month=month, year=year, room_number=room_number) }}">
+                            Trước
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in invoices.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == invoices.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('invoices.list_invoices', page=page_num, status=status, month=month, year=year, room_number=room_number) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if invoices.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('invoices.list_invoices', page=invoices.next_num, status=status, month=month, year=year, room_number=room_number) }}">
+                            Sau
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Chưa có hóa đơn nào.
+                {% if current_user.role in ['admin', 'manager'] %}
+                <a href="{{ url_for('invoices.create_invoice') }}">Tạo hóa đơn mới</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

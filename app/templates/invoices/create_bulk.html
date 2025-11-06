@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo hóa đơn hàng loạt{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-layer-group"></i> Tạo hóa đơn hàng loạt</h2>
+                <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> 
+                <strong>Hướng dẫn:</strong> Chức năng này sẽ tạo hóa đơn cho các phòng đang cho thuê và chưa có hóa đơn trong tháng đã chọn.
+                <br>
+                <strong>Lưu ý:</strong> Mỗi phòng chỉ có thể có 1 hóa đơn trong 1 tháng. Các phòng đã có hóa đơn sẽ tự động bỏ qua.
+            </div>
+            
+            <!-- Thống kê phòng -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ rooms|length }}</h3>
+                            <small>Tổng phòng đang cho thuê</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ rooms_without_invoice|length }}</h3>
+                            <small>Chưa có hóa đơn tháng {{ current_month }}/{{ current_year }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ rooms|length - rooms_without_invoice|length }}</h3>
+                            <small>Đã có hóa đơn tháng {{ current_month }}/{{ current_year }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        <!-- Chọn tháng/năm -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Tháng <span class="text-danger">*</span></label>
+                                <select name="month" class="form-select form-select-lg" required>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>
+                                        Tháng {{ m }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Năm <span class="text-danger">*</span></label>
+                                <select name="year" class="form-select form-select-lg" required>
+                                    {% for y in range(2024, 2027) %}
+                                    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
+                                        {{ y }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Đơn giá mặc định -->
+                        <h5 class="mb-3">Đơn giá mặc định</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Đơn giá điện (đ/kWh)</label>
+                                <input type="number" name="electric_unit_price" class="form-control" 
+                                       value="3500" step="100" min="0" required>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label">Đơn giá nước (đ/m³)</label>
+                                <input type="number" name="water_unit_price" class="form-control" 
+                                       value="20000" step="1000" min="0" required>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    Phí khác (đ)
+                                    <small class="text-muted">(Rác, internet, xe...)</small>
+                                </label>
+                                <input type="number" name="other_fees" class="form-control" 
+                                       value="0" step="1000" min="0">
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            <strong>Lưu ý:</strong> Chỉ số điện/nước sẽ được đặt mặc định là 0. 
+                            Bạn cần vào từng hóa đơn để cập nhật chỉ số thực tế sau.
+                        </div>
+
+                        <hr>
+
+                        <!-- Danh sách phòng sẽ tạo hóa đơn -->
+                        <h5 class="mb-3">
+                            <i class="bi bi-list-check"></i> Danh sách phòng đang cho thuê ({{ rooms|length }} phòng)
+                        </h5>
+                        {% if rooms %}
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Phòng</th>
+                                        <th>Khách thuê</th>
+                                        <th>Giá phòng/tháng</th>
+                                        <th>Trạng thái hóa đơn T{{ current_month }}/{{ current_year }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for room in rooms %}
+                                    <tr>
+                                        <td><strong>{{ room.room_number }}</strong></td>
+                                        <td>
+                                            {% if room.current_tenant %}
+                                                {{ room.current_tenant.full_name }}
+                                            {% else %}
+                                                <span class="text-muted">Không có</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ "{:,.0f}".format(room.price) }}đ</td>
+                                        <td>
+                                            {% if room in rooms_without_invoice %}
+                                                <span class="badge bg-success">✓ Sẽ tạo mới</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Đã có - Bỏ qua</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Tổng kết -->
+                        {% if rooms_without_invoice %}
+                        <div class="alert alert-primary">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <h5>{{ rooms_without_invoice|length }}</h5>
+                                    <small>Hóa đơn sẽ tạo</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>{{ "{:,.0f}".format(rooms_without_invoice|sum(attribute='price')) }}đ</h5>
+                                    <small>Tổng tiền phòng</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>~7 ngày</h5>
+                                    <small>Hạn thanh toán</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="text-end">
+                            <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg" 
+                                    onclick="return confirm('Bạn có chắc muốn tạo {{ rooms_without_invoice|length }} hóa đơn?')">
+                                <i class="bi bi-check-circle"></i> Tạo {{ rooms_without_invoice|length }} hóa đơn
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i> 
+                            <strong>Hoàn tất!</strong> Tất cả phòng đang cho thuê đã có hóa đơn tháng {{ current_month }}/{{ current_year }}.
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-primary">
+                                <i class="bi bi-arrow-left"></i> Về danh sách hóa đơn
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            Không có phòng nào đang cho thuê. Vui lòng thêm khách thuê trước khi tạo hóa đơn.
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('tenants.add_tenant') }}" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> Thêm khách thuê
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

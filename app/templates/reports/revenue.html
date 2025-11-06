@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo doanh thu - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-line"></i> Báo cáo doanh thu năm {{ year }}</h2>
+        <div>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Year selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row align-items-end">
+                <div class="col-md-3">
+                    <label for="year" class="form-label">Chọn năm</label>
+                    <select name="year" id="year" class="form-select" onchange="this.form.submit()">
+                        {% for y in range(2020, 2030) %}
+                        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-money-bill-wave"></i> Tổng doanh thu</h5>
+                    <h3>{{ "{:,.0f}".format(total_revenue) }} VNĐ</h3>
+                    <small>Từ {{ total_invoices }} hóa đơn đã thanh toán</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-calculator"></i> Trung bình/tháng</h5>
+                    <h3>{{ "{:,.0f}".format(total_revenue / 12) }} VNĐ</h3>
+                    <small>Doanh thu trung bình mỗi tháng</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly revenue chart -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-chart-bar"></i> Doanh thu theo tháng</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="revenueChart" height="80"></canvas>
+        </div>
+    </div>
+
+    <!-- Monthly table -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-table"></i> Chi tiết theo tháng</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tháng</th>
+                            <th class="text-end">Số hóa đơn</th>
+                            <th class="text-end">Doanh thu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for month in range(1, 13) %}
+                        <tr>
+                            <td>Tháng {{ month }}/{{ year }}</td>
+                            <td class="text-end">{{ invoice_count[month] }}</td>
+                            <td class="text-end">{{ "{:,.0f}".format(revenue_data[month]) }} VNĐ</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-success fw-bold">
+                            <td>Tổng cộng</td>
+                            <td class="text-end">{{ total_invoices }}</td>
+                            <td class="text-end">{{ "{:,.0f}".format(total_revenue) }} VNĐ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Prepare data from server
+    const revenueData = [
+        {{ revenue_data[1] }},
+        {{ revenue_data[2] }},
+        {{ revenue_data[3] }},
+        {{ revenue_data[4] }},
+        {{ revenue_data[5] }},
+        {{ revenue_data[6] }},
+        {{ revenue_data[7] }},
+        {{ revenue_data[8] }},
+        {{ revenue_data[9] }},
+        {{ revenue_data[10] }},
+        {{ revenue_data[11] }},
+        {{ revenue_data[12] }}
+    ];
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: revenueData,
+                backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('vi-VN') + ' VNĐ';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Doanh thu: ' + context.parsed.y.toLocaleString('vi-VN') + ' VNĐ';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

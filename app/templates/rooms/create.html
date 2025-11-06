@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Thêm phòng mới - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-plus-circle"></i> Thêm phòng mới</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.room_number.label(class="form-label") }}
+                            {{ form.room_number(class="form-control" + (" is-invalid" if form.room_number.errors else "")) }}
+                            {% if form.room_number.errors %}
+                                <div class="invalid-feedback">{{ form.room_number.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.floor.label(class="form-label") }}
+                            {{ form.floor(class="form-control" + (" is-invalid" if form.floor.errors else "")) }}
+                            {% if form.floor.errors %}
+                                <div class="invalid-feedback">{{ form.floor.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.area.label(class="form-label") }}
+                            {{ form.area(class="form-control" + (" is-invalid" if form.area.errors else "")) }}
+                            {% if form.area.errors %}
+                                <div class="invalid-feedback">{{ form.area.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">{{ form.status.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.price.label(class="form-label") }}
+                            {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else "")) }}
+                            {% if form.price.errors %}
+                                <div class="invalid-feedback">{{ form.price.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.deposit.label(class="form-label") }}
+                            {{ form.deposit(class="form-control" + (" is-invalid" if form.deposit.errors else "")) }}
+                            {% if form.deposit.errors %}
+                                <div class="invalid-feedback">{{ form.deposit.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3) }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('rooms.list_rooms') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Quay lại
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

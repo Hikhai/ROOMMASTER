@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - RoomMaster{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-uppercase mb-0">Tổng phòng</h6>
+                        <h2 class="mb-0">{{ total_rooms }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="bi bi-building"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-uppercase mb-0">Đã cho thuê</h6>
+                        <h2 class="mb-0">{{ rented_rooms }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="bi bi-door-closed"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-uppercase mb-0">Còn trống</h6>
+                        <h2 class="mb-0">{{ empty_rooms }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="bi bi-door-open"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-uppercase mb-0">Khách thuê</h6>
+                        <h2 class="mb-0">{{ total_tenants }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue and Invoices -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-cash-stack text-success"></i> Doanh thu tháng này
+                </h5>
+                <h3 class="text-success">{{ '{:,.0f}'.format(monthly_revenue) }} VNĐ</h3>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-calendar3"></i> Tháng {{ now.month }}/{{ now.year }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-hourglass-split text-warning"></i> Hóa đơn chưa thanh toán
+                </h5>
+                <h3 class="text-warning">{{ unpaid_invoices }}</h3>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-info-circle"></i> Bao gồm thanh toán 1 phần
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-exclamation-triangle text-danger"></i> Tổng công nợ
+                </h5>
+                <h3 class="text-danger">{{ '{:,.0f}'.format(total_debt) }} VNĐ</h3>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-credit-card"></i> Còn phải thu
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i> Hóa đơn gần đây
+                </h5>
+                <a href="{{ url_for('invoices.list_invoices') }}" class="btn btn-sm btn-primary">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã hóa đơn</th>
+                                <th>Phòng</th>
+                                <th>Tháng/Năm</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}">
+                                        #{{ invoice.id }}
+                                    </a>
+                                </td>
+                                <td>{{ invoice.room.room_number }}</td>
+                                <td>{{ invoice.month }}/{{ invoice.year }}</td>
+                                <td>{{ '{:,.0f}'.format(invoice.total_amount) }} VNĐ</td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                    {% elif invoice.status == 'partial' %}
+                                        <span class="badge bg-info">Thanh toán 1 phần</span>
+                                    {% elif invoice.status == 'unpaid' %}
+                                        <span class="badge bg-warning">Chưa thanh toán</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ invoice.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ invoice.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    Chưa có hóa đơn nào
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Thao tác nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% if current_user.role in ['admin', 'manager'] %}
+                    <a href="{{ url_for('rooms.add_room') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Thêm phòng mới
+                    </a>
+                    <a href="{{ url_for('tenants.add_tenant') }}" class="btn btn-success">
+                        <i class="bi bi-person-plus"></i> Thêm khách thuê
+                    </a>
+                    <a href="{{ url_for('invoices.create_invoice') }}" class="btn btn-warning">
+                        <i class="bi bi-file-earmark-plus"></i> Tạo hóa đơn
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('reports.revenue') }}" class="btn btn-info">
+                        <i class="bi bi-graph-up"></i> Xem báo cáo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

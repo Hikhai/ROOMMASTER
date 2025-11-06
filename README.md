@@ -510,8 +510,8 @@ MIT License - Xem file [LICENSE](LICENSE) để biết thêm chi tiết
 ## 👨‍💻 Authors
 
 **RoomMaster Development Team**
-- Email: support@roommaster.com
-- Website: https://roommaster.com
+- Email: khaihh.goog@gmail.com
+- Website: 
 
 ## 🙏 Acknowledgments
 
@@ -523,7 +523,7 @@ MIT License - Xem file [LICENSE](LICENSE) để biết thêm chi tiết
 
 ## 📞 Support
 
-Có vấn đề? Mở issue tại [GitHub Issues](https://github.com/yourusername/roommaster/issues)
+Có vấn đề? Mở issue tại [GitHub Issues](https://github.com/hikhai/roommaster/issues)
 
 ---
 

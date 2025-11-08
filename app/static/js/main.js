@@ -261,3 +261,56 @@ function exportTableToCSV(filename) {
     a.click();
     window.URL.revokeObjectURL(url);
 }
+
+// ============================================
+// THEME TOGGLE (LIGHT/DARK MODE)
+// ============================================
+
+// Load theme from localStorage on page load
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+// Toggle between light and dark theme
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Show toast notification
+    const message = newTheme === 'dark' ? 'Đã chuyển sang chế độ tối 🌙' : 'Đã chuyển sang chế độ sáng ☀️';
+    showToast(message, 'info');
+}
+
+// Update theme icon based on current theme
+function updateThemeIcon(theme) {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('i');
+        if (icon) {
+            if (theme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                themeToggle.setAttribute('title', 'Chuyển sang chế độ sáng');
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                themeToggle.setAttribute('title', 'Chuyển sang chế độ tối');
+            }
+        }
+    }
+}
+
+// Initialize theme on page load (run immediately, before DOMContentLoaded)
+loadTheme();
+
+// Add event listener for theme toggle button after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+});

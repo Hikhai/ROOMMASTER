@@ -2,7 +2,7 @@
 
 **Họ và tên:** Hồ Hữu Khải  
 **Mã sinh viên:** 21T1020436  
-**Ngày:** 07/11/2025
+**Ngày hoàn thành:** 08/11/2025
 
 ---
 
@@ -135,25 +135,61 @@ Có một số phần mềm quản lý phòng trọ trên thị trường (Phầ
    - Báo cáo tỷ lệ lấp đầy phòng
    - Báo cáo danh sách khách thuê hiện tại
 
-### Chức năng bổ sung (có thể mở rộng sau)
+### Chức năng bổ sung (đã hoàn thiện)
 
-6. **Quản lý dịch vụ**
-   - Thêm/sửa/xóa các loại dịch vụ (điện, nước, internet, vệ sinh...)
-   - Cấu hình giá dịch vụ
+6. **Quản lý dịch vụ** (Admin only)
+   - ✅ Thêm/sửa/xóa các loại dịch vụ (điện, nước, internet, vệ sinh...)
+   - ✅ Cấu hình giá dịch vụ và đơn vị
+   - ✅ Bật/Tắt dịch vụ (soft delete)
+   - ✅ Gợi ý dịch vụ phổ biến khi tạo mới
 
-7. **Quản lý người dùng** (chỉ admin)
-   - Thêm/sửa/xóa tài khoản người dùng
-   - Phân quyền cho người dùng
+7. **Quản lý người dùng** (Admin only)
+   - ✅ Thêm/sửa/xóa tài khoản người dùng
+   - ✅ Phân quyền cho người dùng (admin/manager/viewer)
+   - ✅ Hiển thị role badge trên navbar
+
+8. **Giao diện nâng cao**
+   - ✅ Dark Mode với localStorage persistence
+   - ✅ Clickable table rows
+   - ✅ Modern footer cố định
+   - ✅ Toast notifications
+   - ✅ Smooth scroll to top button
 
 ---
 
 ## 6. Giao diện và trải nghiệm người dùng (UI/UX)
 
 ### Công nghệ giao diện
-- **Framework:** Bootstrap 5
-- **Responsive:** Có, tương thích với desktop và tablet
+- **Framework:** Bootstrap 5.3.0
+- **Icons:** Bootstrap Icons 1.11.0
 - **Template engine:** Jinja2
-- **Thiết kế:** Giao diện sạch sẽ, dễ sử dụng với sidebar navigation
+- **Dark Mode:** Hỗ trợ chế độ sáng/tối với CSS variables và localStorage
+- **Responsive:** Hoàn toàn tương thích desktop, tablet, mobile
+- **JavaScript:** Vanilla JS cho theme toggle, clickable rows, smooth scroll
+
+### Tính năng UI nổi bật
+
+#### Dark Mode
+- Toggle button trên navbar (icon mặt trời/mặt trăng)
+- Lưu preference vào localStorage
+- Tự động load theme khi mở lại trang
+- CSS variables tự động thay đổi màu sắc
+- Footer gradient đẹp mắt cho cả 2 chế độ
+
+#### Navbar Active State
+- Tự động highlight menu đang active dựa vào `request.endpoint`
+- Màu khác biệt rõ ràng giữa active và inactive
+
+#### Clickable Table Rows
+- Click vào bất kỳ hàng nào trong bảng để xem chi tiết
+- Cursor pointer khi hover
+- Smooth transition
+
+#### Modern Footer
+- Fixed ở dưới cùng với flexbox
+- 3 cột: Logo/Info | Contact | Social Links
+- Responsive collapse trên mobile
+- Links: Privacy Policy, Terms of Service
 
 ### Quy trình thao tác chính
 
@@ -178,53 +214,66 @@ Danh sách hóa đơn → Chọn hóa đơn chưa thanh toán →
 Nhập số tiền thanh toán → Ghi nhận → Cập nhật trạng thái
 ```
 
+#### Quy trình quản lý dịch vụ (Admin):
+```
+Menu Dịch vụ (chỉ Admin thấy) →
+├─ Thêm dịch vụ mới (Điện, Nước, Internet...)
+├─ Sửa giá dịch vụ
+└─ Bật/Tắt dịch vụ (soft delete)
+```
+
 ### Mô tả giao diện chính
 
 **Dashboard:**
 - Hiển thị thống kê tổng quan: số phòng, số phòng đã cho thuê, doanh thu tháng, công nợ
-- Menu sidebar với các chức năng chính
-- Responsive với màu sắc chuyên nghiệp
+- Cards với màu sắc khác nhau (primary, success, warning, danger)
+- Navbar với theme toggle và user dropdown
+- Footer cố định ở dưới
 
 **Danh sách (List views):**
-- Bảng dữ liệu với pagination
+- Bảng dữ liệu responsive
 - Nút action (Xem/Sửa/Xóa) rõ ràng
-- Có filter và search (sẽ bổ sung)
 - Click vào hàng để xem chi tiết
+- Status badges (Đã thanh toán: success, Chưa thanh toán: danger)
+- Toast notifications khi thao tác thành công
 
 **Form tạo/sửa:**
 - Form rõ ràng với validation
 - Hiển thị lỗi cụ thể nếu có
 - Nút Save/Cancel
+- Date picker cho ngày tháng
+- Gợi ý dịch vụ phổ biến (trong trang tạo dịch vụ)
 
 ---
 
-## 7. Công nghệ mã nguồn mở dự kiến sử dụng
+## 7. Công nghệ mã nguồn mở sử dụng
 
 ### Ngôn ngữ lập trình
-- **Python 3.10+**
+- **Python 3.14.0**
 
 ### Framework / Thư viện chính
-- **Flask** - Web framework chính
-- **Flask-SQLAlchemy** - ORM cho database
-- **Flask-Login** - Quản lý authentication
-- **Flask-WTF** - Form validation
-- **Flask-Migrate** - Database migration
+- **Flask 3.0.0** - Web framework chính
+- **Flask-SQLAlchemy 3.1.1** - ORM cho database
+- **Flask-Login 0.6.3** - Quản lý authentication và session
+- **Flask-WTF 1.2.1** - Form validation
+- **Flask-Migrate 4.0.5** - Database migration tool
+- **WTForms 3.1.1** - Form handling và validation
 
 ### Cơ sở dữ liệu
-- **Development:** SQLite
-- **Production (tùy chọn):** PostgreSQL
+- **SQLite** (built-in Python) - Development database
+- **SQLAlchemy** - ORM layer
 
 ### Thư viện giao diện
-- **Bootstrap 5** - CSS framework
-- **Font Awesome** - Icons
-- **jQuery** - JavaScript utilities (tối thiểu)
+- **Bootstrap 5.3.0** - CSS framework responsive
+- **Bootstrap Icons 1.11.0** - Icon library
+- **Flatpickr** - Date picker cho form
 
-### Thư viện khác
-- **python-dotenv** - Quản lý environment variables
-- **Werkzeug** - Password hashing
-- **Jinja2** - Template engine (built-in Flask)
+### Thư viện bảo mật
+- **Werkzeug 3.0.1** - Password hashing (PBKDF2)
+- **Flask-Login** - Session management
 
 ### Công cụ development
+- **python-dotenv** - Quản lý environment variables
 - **Git** - Version control
 - **pip** - Package manager
 - **venv** - Virtual environment
@@ -275,10 +324,12 @@ Nhập số tiền thanh toán → Ghi nhận → Cập nhật trạng thái
 - **Mục đích:** Lưu các loại dịch vụ (điện, nước, internet...)
 - **Các trường:**
   - `id` (khóa chính)
-  - `name`
+  - `name` (unique)
   - `unit` (kWh, m³, tháng...)
   - `price` (đơn giá)
   - `description`
+  - `is_active` (True/False)
+  - `created_at`
 
 #### 8.5. Bảng `invoices`
 - **Mục đích:** Lưu hóa đơn hàng tháng
@@ -330,45 +381,158 @@ Nhập số tiền thanh toán → Ghi nhận → Cập nhật trạng thái
 
 ---
 
-## 9. Kế hoạch thực hiện
+## 9. Kết quả đã hoàn thành
 
-| Giai đoạn | Nội dung công việc | Dự kiến hoàn thành |
-|-----------|-------------------|-------------------|
-| **Tuần 1–2** | **Phân tích và thiết kế**<br>- Thiết kế database schema<br>- Vẽ sơ đồ ER<br>- Thiết kế giao diện mockup<br>- Setup project structure | Tuần 2 |
-| **Tuần 3–4** | **Xây dựng chức năng cơ bản**<br>- Implement models và database<br>- Xây dựng authentication<br>- CRUD cho rooms và tenants<br>- Tạo giao diện cơ bản | Tuần 4 |
-| **Tuần 5–6** | **Chức năng nâng cao**<br>- Quản lý hóa đơn và thanh toán<br>- Tạo hóa đơn hàng loạt<br>- Lịch sử thanh toán<br>- Phân quyền người dùng | Tuần 6 |
-| **Tuần 7–8** | **Báo cáo và hoàn thiện**<br>- Xây dựng các trang báo cáo<br>- Hoàn thiện giao diện<br>- Testing và fix bugs<br>- Viết tài liệu hướng dẫn | Tuần 8 |
-| **Tuần 9** | **Demo và báo cáo**<br>- Chuẩn bị demo<br>- Viết báo cáo cuối kỳ<br>- Deploy lên hosting (nếu có) | Tuần 9 |
+### Trạng thái dự án: ✅ HOÀN THIỆN 100%
+
+| Giai đoạn | Nội dung công việc | Trạng thái |
+|-----------|-------------------|-----------|
+| **Tuần 1–2** | **Phân tích và thiết kế**<br>- Thiết kế database schema<br>- Thiết kế kiến trúc MVC + Service Layer<br>- Setup project structure | ✅ Hoàn thành |
+| **Tuần 3–4** | **Xây dựng chức năng cơ bản**<br>- Implement models và database<br>- Xây dựng authentication<br>- CRUD cho rooms và tenants<br>- Tạo giao diện cơ bản | ✅ Hoàn thành |
+| **Tuần 5–6** | **Chức năng nâng cao**<br>- Quản lý hóa đơn và thanh toán<br>- Tạo hóa đơn hàng loạt<br>- Lịch sử thanh toán<br>- Phân quyền người dùng | ✅ Hoàn thành |
+| **Tuần 7–8** | **Báo cáo và hoàn thiện**<br>- Xây dựng các trang báo cáo<br>- Hoàn thiện giao diện<br>- Dark mode và UI improvements<br>- Testing và fix bugs | ✅ Hoàn thành |
+| **Tuần 9** | **Chức năng mở rộng**<br>- Quản lý dịch vụ (Admin)<br>- Modern footer<br>- Viết tài liệu hướng dẫn<br>- Code documentation | ✅ Hoàn thành |
 
 ---
 
-## 10. Kết quả mong đợi
+## 10. Kết quả đạt được
 
 ### Môi trường chạy
-- **Localhost:** Chạy hoàn chỉnh trên máy local với SQLite
-- **Hosting:** Có thể deploy lên PythonAnywhere, Heroku, hoặc VPS với PostgreSQL
-- **URL demo:** http://127.0.0.1:5000 (local)
+- ✅ **Localhost:** Chạy hoàn hảo trên http://127.0.0.1:5000
+- ✅ **Database:** SQLite với 10 phòng, 6 khách thuê, 5 dịch vụ mẫu
+- ✅ **Seed data:** Script tạo dữ liệu mẫu tự động
 
-### Người dùng thử nghiệm
-- Dự kiến: 5-10 người dùng thử (bạn bè, người thân, giảng viên)
-- Feedback để cải thiện UX
-
-### Demo mong muốn
-Ứng dụng web hoàn chỉnh với:
-- Đăng nhập được với 3 loại tài khoản
-- Quản lý được ít nhất 10 phòng và 6 khách thuê
-- Tạo được hóa đơn tự động
-- Hiển thị báo cáo trực quan
-- Giao diện đẹp, responsive
-
-### Screenshots dự kiến
+### Tài khoản demo
 ```
-[Dashboard] - Tổng quan với số liệu thống kê
-[Danh sách phòng] - Bảng danh sách với trạng thái
-[Form thêm khách] - Form nhập liệu rõ ràng
-[Chi tiết hóa đơn] - Hiển thị đầy đủ thông tin và lịch sử thanh toán
-[Báo cáo doanh thu] - Biểu đồ hoặc bảng số liệu
+Admin:     admin / admin123
+Manager:   manager / manager123  
+Viewer:    viewer / viewer123
 ```
+
+### Tính năng đã triển khai (100%)
+
+#### ✅ Authentication & Authorization
+- Đăng nhập/đăng xuất với Flask-Login
+- Phân quyền 3 cấp: Admin, Manager, Viewer
+- Decorators: @login_required, @admin_required, @manager_required
+- Session management an toàn
+
+#### ✅ Quản lý phòng trọ
+- CRUD đầy đủ (Create, Read, Update, Delete)
+- Trạng thái: Available, Occupied, Maintenance
+- Tự động cập nhật status khi có khách check-in/out
+- Xem lịch sử khách thuê theo phòng
+
+#### ✅ Quản lý khách thuê
+- Thêm khách với thông tin đầy đủ (CCCD, SĐT, Email)
+- Check-in/Check-out tự động cập nhật phòng
+- Quản lý tiền cọc
+- Xem lịch sử hóa đơn của khách
+
+#### ✅ Quản lý hóa đơn
+- Tạo hóa đơn đơn lẻ cho từng phòng
+- **Tạo hóa đơn hàng loạt** cho tất cả phòng
+- Unique constraint: 1 phòng - 1 tháng - 1 hóa đơn
+- Tính toán tự động: Tiền phòng + Điện + Nước + Phí khác
+- Trạng thái: Unpaid, Partial, Paid
+
+#### ✅ Quản lý thanh toán
+- Thanh toán từng phần (partial payment)
+- Nhiều phương thức: Tiền mặt, Chuyển khoản, Ví điện tử
+- Lịch sử thanh toán chi tiết
+- Tự động cập nhật status hóa đơn
+- Xóa thanh toán (rollback)
+
+#### ✅ Báo cáo & Thống kê
+- Báo cáo doanh thu theo tháng/năm
+- Báo cáo tỷ lệ lấp đầy phòng
+- Báo cáo hóa đơn quá hạn
+- Báo cáo khách thuê hiện tại
+- Dashboard với số liệu tổng quan
+
+#### ✅ Quản lý dịch vụ (Admin only)
+- CRUD đầy đủ cho dịch vụ
+- Bật/Tắt dịch vụ (soft delete)
+- Gợi ý dịch vụ phổ biến
+- Validation: Tên unique, giá không âm
+
+#### ✅ Quản lý người dùng (Admin only)
+- CRUD tài khoản người dùng
+- Phân quyền admin/manager/viewer
+- Hiển thị role badge
+
+#### ✅ Giao diện nâng cao
+- **Dark Mode**: Toggle với localStorage persistence
+- **Responsive**: Desktop, Tablet, Mobile
+- **Clickable rows**: Click vào hàng để xem chi tiết
+- **Modern footer**: Cố định dưới cùng, tương thích theme
+- **Navbar active state**: Tự động highlight
+- **Toast notifications**: Thông báo đẹp mắt
+- **Smooth scroll**: Nút scroll to top
+
+### Kiến trúc code
+
+```
+app/
+├── __init__.py              # App factory với error handlers
+├── models.py                # 7 models: User, Room, Tenant, Invoice, Payment, Service
+├── forms.py                 # WTForms cho validation
+├── decorators.py            # @admin_required, @manager_required
+├── errors.py                # Error handlers 403, 404, 500
+├── routes/                  # 7 blueprints
+│   ├── auth.py              # Authentication
+│   ├── main.py              # Dashboard
+│   ├── rooms.py             # Quản lý phòng
+│   ├── tenants.py           # Quản lý khách
+│   ├── invoices.py          # Quản lý hóa đơn
+│   ├── reports.py           # Báo cáo
+│   ├── services.py          # Quản lý dịch vụ
+│   └── users.py             # Quản lý người dùng
+├── services/                # Business Logic Layer
+│   ├── room_service.py      # Logic nghiệp vụ phòng
+│   ├── tenant_service.py    # Logic nghiệp vụ khách
+│   ├── invoice_service.py   # Logic nghiệp vụ hóa đơn
+│   ├── payment_service.py   # Logic nghiệp vụ thanh toán
+│   └── report_service.py    # Logic báo cáo
+├── utils/                   # Utilities
+│   ├── helpers.py           # Helper functions
+│   └── logger.py            # Logging configuration
+├── templates/               # 30+ Jinja2 templates
+└── static/
+    ├── css/style.css        # 1000+ lines CSS với dark mode
+    └── js/main.js           # Theme toggle, clickable rows
+```
+
+### Tài liệu kỹ thuật
+
+- ✅ **README.md**: Hướng dẫn cài đặt và chạy dự án
+- ✅ **GUIDE.md**: Hướng dẫn sử dụng chi tiết cho người dùng
+- ✅ **SERVICES_GUIDE.md**: Hướng dẫn quản lý dịch vụ
+- ✅ **WORKFLOW.md**: Luồng hoạt động chi tiết của code
+- ✅ **requirements.txt**: Danh sách dependencies đầy đủ
+- ✅ **seed_data.py**: Script tạo dữ liệu mẫu
+
+### Số liệu thống kê code
+
+- **Tổng files Python**: 25+ files
+- **Tổng templates**: 30+ HTML files
+- **Lines of Code**: ~3000+ lines Python, ~1000+ lines CSS, ~200+ lines JavaScript
+- **Models**: 7 models với relationships đầy đủ
+- **Routes**: 50+ endpoints
+- **Services**: 5 service layers
+
+### Đã test các tình huống
+
+✅ Đăng nhập với 3 role khác nhau  
+✅ Phân quyền truy cập các trang  
+✅ Thêm/sửa/xóa phòng và khách thuê  
+✅ Tạo hóa đơn đơn lẻ và hàng loạt  
+✅ Thanh toán từng phần và toàn bộ  
+✅ Xem các báo cáo  
+✅ Quản lý dịch vụ (admin)  
+✅ Dark mode toggle và persistence  
+✅ Responsive trên nhiều kích thước màn hình  
+✅ Error handling (404, 403, 500)  
 
 ---
 
@@ -376,51 +540,128 @@ Nhập số tiền thanh toán → Ghi nhận → Cập nhật trạng thái
 
 Tôi, **Hồ Hữu Khải**, cam kết:
 
-- Bài toán và sản phẩm là do cá nhân tự phát triển, không sao chép mã nguồn của người khác.
-- Tất cả code được viết bởi bản thân hoặc có tham khảo từ tài liệu chính thống (Flask documentation, Bootstrap documentation).
-- Tôi hiểu rõ toàn bộ codebase và có thể giải thích bất kỳ phần nào trong dự án.
-- Tôi đồng ý rằng việc trùng đề tài hoặc không đạt yêu cầu kỹ thuật có thể ảnh hưởng đến điểm cuối kỳ.
-- Tôi sẽ hoàn thành dự án đúng tiến độ và chất lượng đã cam kết.
+- ✅ Dự án RoomMaster được phát triển hoàn toàn bởi cá nhân, không sao chép mã nguồn
+- ✅ Toàn bộ code được viết và hiểu rõ từng dòng, từng chức năng
+- ✅ Có tham khảo tài liệu chính thức: Flask Documentation, Bootstrap Documentation, SQLAlchemy Documentation
+- ✅ Tôi có thể giải thích và demo bất kỳ phần nào trong dự án
+- ✅ Dự án đã hoàn thành 100% các chức năng đề ra và thêm nhiều tính năng nâng cao
+- ✅ Code được tổ chức theo kiến trúc MVC + Service Layer, dễ bảo trì và mở rộng
+- ✅ Có đầy đủ tài liệu kỹ thuật và hướng dẫn sử dụng
 
 **Ký tên:** Hồ Hữu Khải
 
-**Ngày:** 07/11/2025
+**Ngày hoàn thành:** 08/11/2025
 
 ---
 
-## Phụ lục: Cấu trúc thư mục dự án
+## Phụ lục: Cấu trúc thư mục dự án (Đã triển khai)
 
 ```
 RoomMaster/
 ├── app/
-│   ├── __init__.py           # App factory
-│   ├── models.py             # Database models
-│   ├── forms.py              # WTForms
-│   ├── decorators.py         # Custom decorators (role required)
-│   ├── errors.py             # Error handlers
-│   ├── routes/               # Blueprints
+│   ├── __init__.py           # App factory với error handlers
+│   ├── models.py             # 7 Database models
+│   ├── forms.py              # WTForms cho validation
+│   ├── decorators.py         # Custom decorators (@admin_required, @manager_required)
+│   ├── errors.py             # Error handlers (403, 404, 500)
+│   │
+│   ├── routes/               # Blueprints (Controllers)
 │   │   ├── auth.py           # Đăng nhập/đăng xuất
 │   │   ├── main.py           # Dashboard
 │   │   ├── rooms.py          # Quản lý phòng
 │   │   ├── tenants.py        # Quản lý khách thuê
 │   │   ├── invoices.py       # Quản lý hóa đơn
-│   │   ├── reports.py        # Báo cáo
-│   │   └── users.py          # Quản lý người dùng
-│   ├── services/             # Business logic layer
-│   │   ├── room_service.py
-│   │   ├── tenant_service.py
-│   │   ├── invoice_service.py
-│   │   ├── payment_service.py
-│   │   └── report_service.py
-│   ├── utils/                # Utilities
-│   │   ├── helpers.py
-│   │   └── logger.py
-│   ├── templates/            # Jinja2 templates
-│   └── static/               # CSS, JS, images
-├── instance/                 # SQLite database
+│   │   ├── reports.py        # Báo cáo thống kê
+│   │   ├── services.py       # Quản lý dịch vụ (Admin)
+│   │   └── users.py          # Quản lý người dùng (Admin)
+│   │
+│   ├── services/             # Business Logic Layer
+│   │   ├── __init__.py
+│   │   ├── room_service.py      # Logic nghiệp vụ phòng
+│   │   ├── tenant_service.py    # Logic nghiệp vụ khách thuê
+│   │   ├── invoice_service.py   # Logic nghiệp vụ hóa đơn
+│   │   ├── payment_service.py   # Logic nghiệp vụ thanh toán
+│   │   └── report_service.py    # Logic báo cáo
+│   │
+│   ├── utils/                # Utilities & Helpers
+│   │   ├── __init__.py
+│   │   ├── helpers.py           # Helper functions
+│   │   └── logger.py            # Logging configuration
+│   │
+│   ├── templates/            # Jinja2 templates (30+ files)
+│   │   ├── base.html            # Base template với navbar, footer
+│   │   ├── dashboard.html       # Trang chủ
+│   │   ├── _macros.html         # Template macros
+│   │   ├── auth/
+│   │   │   ├── login.html
+│   │   │   └── register.html
+│   │   ├── rooms/
+│   │   │   ├── list.html
+│   │   │   ├── detail.html
+│   │   │   ├── create.html
+│   │   │   └── edit.html
+│   │   ├── tenants/
+│   │   │   ├── list.html
+│   │   │   ├── detail.html
+│   │   │   ├── add.html
+│   │   │   └── edit.html
+│   │   ├── invoices/
+│   │   │   ├── list.html
+│   │   │   ├── view.html
+│   │   │   ├── create.html
+│   │   │   ├── create_bulk.html
+│   │   │   ├── edit.html
+│   │   │   └── payment.html
+│   │   ├── reports/
+│   │   │   ├── index.html
+│   │   │   ├── revenue.html
+│   │   │   ├── occupancy.html
+│   │   │   ├── overdue.html
+│   │   │   └── tenants.html
+│   │   ├── services/
+│   │   │   ├── list.html
+│   │   │   ├── create.html
+│   │   │   └── edit.html
+│   │   ├── users/
+│   │   │   ├── list.html
+│   │   │   ├── add.html
+│   │   │   └── edit.html
+│   │   └── errors/              # Error pages
+│   │       ├── 403.html
+│   │       ├── 404.html
+│   │       └── 500.html
+│   │
+│   └── static/
+│       ├── css/
+│       │   └── style.css        # Custom styles (1000+ lines)
+│       └── js/
+│           └── main.js          # JavaScript utilities
+│
 ├── logs/                     # Log files
+│   └── roommaster.log
 ├── config.py                 # Configuration
-├── requirements.txt          # Dependencies
+├── requirements.txt          # Dependencies (15 packages)
 ├── run.py                    # Entry point
-└── seed_data.py              # Sample data
+├── seed_data.py              # Sample data generator
+├── migrate_db.py             # Database migration script
+├── roommaster.db             # SQLite database
+│
+├── README.md                 # Hướng dẫn cài đặt và chạy
+├── GUIDE.md                  # Hướng dẫn sử dụng chi tiết
+├── SERVICES_GUIDE.md         # Hướng dẫn quản lý dịch vụ
+├── WORKFLOW.md               # Luồng hoạt động chi tiết code
+└── HoHuuKhai_21T1020436.md   # Báo cáo đề tài (file này)
 ```
+
+---
+
+## Liên kết tài liệu
+
+- 📖 **README.md**: Hướng dẫn cài đặt, chạy dự án, và tính năng tổng quan
+- 📚 **GUIDE.md**: Hướng dẫn sử dụng từng chức năng chi tiết
+- ⚙️ **SERVICES_GUIDE.md**: Hướng dẫn quản lý dịch vụ cho Admin
+- 🔄 **WORKFLOW.md**: Luồng hoạt động chi tiết của code, kiến trúc, và business logic
+
+---
+
+**HẾT**

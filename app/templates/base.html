@@ -16,7 +16,7 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
@@ -61,6 +61,12 @@
                     </li>
                     {% if current_user.role == 'admin' %}
                     <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('services.') %}active{% endif %}" 
+                           href="{{ url_for('services.list_services') }}">
+                            <i class="bi bi-gear-fill"></i> Dịch vụ
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.endpoint and request.endpoint.startswith('users.') %}active{% endif %}" 
                            href="{{ url_for('users.list_users') }}">
                             <i class="bi bi-people-fill"></i> Nhân viên
@@ -69,6 +75,12 @@
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
+                    <!-- Theme Toggle Button -->
+                    <li class="nav-item">
+                        <a class="nav-link" id="themeToggle" role="button" title="Chuyển chế độ sáng/tối">
+                            <i class="bi bi-moon-fill"></i>
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
                            data-bs-toggle="dropdown">
@@ -131,14 +143,58 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="container my-4">
+    <main class="container my-4 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light text-center text-muted py-3 mt-5">
+    <footer class="footer mt-auto">
         <div class="container">
-            <p class="mb-0">&copy; 2025 RoomMaster - Hệ thống quản lý phòng trọ</p>
+            <div class="row py-4">
+                <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+                    <h5 class="footer-title">
+                        <i class="bi bi-building"></i> RoomMaster
+                    </h5>
+                    <p class="footer-text mb-0">
+                        Hệ thống quản lý phòng trọ<br>
+                        chuyên nghiệp và hiện đại
+                    </p>
+                </div>
+                <div class="col-md-4 text-center mb-3 mb-md-0">
+                    <h6 class="footer-subtitle">Liên hệ</h6>
+                    <p class="footer-text mb-1">
+                        <i class="bi bi-envelope"></i> support@roommaster.vn
+                    </p>
+                    <p class="footer-text mb-0">
+                        <i class="bi bi-telephone"></i> 0123-456-789
+                    </p>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <h6 class="footer-subtitle">Theo dõi chúng tôi</h6>
+                    <div class="footer-social">
+                        <a href="#" class="footer-social-link" title="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" class="footer-social-link" title="Twitter">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="#" class="footer-social-link" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" class="footer-social-link" title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="text-center py-3">
+                <p class="footer-copyright mb-0">
+                    &copy; 2025 RoomMaster. All rights reserved. | 
+                    <a href="#" class="footer-link">Privacy Policy</a> | 
+                    <a href="#" class="footer-link">Terms of Service</a>
+                </p>
+            </div>
         </div>
     </footer>
 

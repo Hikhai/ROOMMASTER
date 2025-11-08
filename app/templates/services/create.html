@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Thêm Dịch vụ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Thêm Dịch vụ mới</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('services.create_service') }}">
+                        <!-- Tên dịch vụ -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">
+                                Tên dịch vụ <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="VD: Điện, Nước, Internet, Rác, Bảo vệ..." required>
+                            <div class="form-text">Tên duy nhất của dịch vụ</div>
+                        </div>
+
+                        <!-- Đơn vị và Đơn giá -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit" class="form-label">Đơn vị</label>
+                                    <input type="text" class="form-control" id="unit" name="unit" 
+                                           placeholder="VD: kWh, m³, tháng">
+                                    <div class="form-text">Đơn vị tính phí</div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">
+                                        Đơn giá (VNĐ) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0" value="0" required>
+                                    <div class="form-text">Giá mỗi đơn vị (hoặc phí cố định)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="3" placeholder="Mô tả chi tiết về dịch vụ..."></textarea>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" 
+                                   name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Kích hoạt dịch vụ ngay
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <!-- Buttons -->
+                        <div class="text-end">
+                            <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Tạo dịch vụ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Gợi ý dịch vụ phổ biến -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Gợi ý dịch vụ phổ biến</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong>Điện:</strong> kWh, ~3.500đ/kWh
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Nước:</strong> m³, ~20.000đ/m³
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Internet:</strong> tháng, ~100.000đ/tháng
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong>Rác:</strong> tháng, ~20.000đ/tháng
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Bảo vệ:</strong> tháng, ~50.000đ/tháng
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Gửi xe:</strong> xe/tháng, ~50.000đ/xe
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

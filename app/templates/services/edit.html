@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Chỉnh sửa Dịch vụ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-pencil-fill"></i> Chỉnh sửa Dịch vụ: {{ service.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('services.edit_service', id=service.id) }}">
+                        <!-- Tên dịch vụ -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">
+                                Tên dịch vụ <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ service.name }}" required>
+                            <div class="form-text">Tên duy nhất của dịch vụ</div>
+                        </div>
+
+                        <!-- Đơn vị và Đơn giá -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit" class="form-label">Đơn vị</label>
+                                    <input type="text" class="form-control" id="unit" name="unit" 
+                                           value="{{ service.unit or '' }}" 
+                                           placeholder="VD: kWh, m³, tháng">
+                                    <div class="form-text">Đơn vị tính phí</div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">
+                                        Đơn giá (VNĐ) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0" value="{{ service.price }}" required>
+                                    <div class="form-text">Giá mỗi đơn vị (hoặc phí cố định)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="3" placeholder="Mô tả chi tiết về dịch vụ...">{{ service.description or '' }}</textarea>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" 
+                                   name="is_active" {% if service.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                Dịch vụ đang hoạt động
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <!-- Thông tin thêm -->
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle"></i> 
+                                <strong>Ngày tạo:</strong> {{ service.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            </small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="text-end">
+                            <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle"></i> Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Nút xóa dịch vụ -->
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Khu vực nguy hiểm</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Xóa dịch vụ:</strong> Hành động này không thể hoàn tác. 
+                        Nếu dịch vụ đang được sử dụng trong hóa đơn, bạn sẽ không thể xóa.
+                    </p>
+                    <form method="POST" action="{{ url_for('services.delete_service', id=service.id) }}" 
+                          onsubmit="return confirm('Bạn có CHẮC CHẮN muốn xóa dịch vụ {{ service.name }}? Hành động này KHÔNG THỂ HOÀN TÁC!');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash-fill"></i> Xóa dịch vụ này
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

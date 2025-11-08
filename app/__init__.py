@@ -44,7 +44,7 @@ def create_app(config_class=Config):
     from app import models
     
     # Đăng ký blueprints (routes)
-    from app.routes import auth, main, rooms, tenants, invoices, reports, users
+    from app.routes import auth, main, rooms, tenants, invoices, reports, users, services
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
@@ -53,10 +53,17 @@ def create_app(config_class=Config):
     app.register_blueprint(invoices.bp)
     app.register_blueprint(reports.bp)
     app.register_blueprint(users.bp)
+    app.register_blueprint(services.bp)
     
     # Đăng ký error handlers
     from app.errors import register_error_handlers
     register_error_handlers(app)
+    
+    # Add security headers
+    from app.security import add_security_headers
+    @app.after_request
+    def security_headers(response):
+        return add_security_headers(response)
     
     # Đăng ký template filters
     from app.utils.helpers import format_currency, format_date, get_status_badge_class

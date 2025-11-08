@@ -349,6 +349,10 @@ def payment_invoice(id):
                   f'Vui lòng nhập số tiền không vượt quá {remaining:,.0f}đ.', 'danger')
             return redirect(url_for('invoices.payment_invoice', id=invoice.id))
         
+        # ⚠️ CẢNH BÁO: Số tiền gần bằng số tiền còn nợ (trong phạm vi 1000đ)
+        if remaining - amount <= 1000 and remaining - amount > 0:
+            flash(f'⚠️ Lưu ý: Sau khi thanh toán sẽ còn dư {remaining - amount:,.0f}đ', 'warning')
+        
         # ✅ VALIDATION 4: Phương thức thanh toán hợp lệ
         valid_methods = ['cash', 'bank_transfer']
         if payment_method not in valid_methods:
@@ -396,7 +400,35 @@ def payment_invoice(id):
 
 
 # ============================================
-# 6. XÓA HÓA ĐƠN
+# 6. XÓA THANH TOÁN (PAYMENT)
+# ============================================
+@bp.route('/payment/<int:payment_id>/delete', methods=['POST'])
+@login_required
+@manager_or_admin
+def delete_payment(payment_id):
+    """
+    Xóa một lần thanh toán (nếu nhập sai)
+    Sau khi xóa sẽ tự động cập nhật lại trạng thái hóa đơn
+    """
+    payment = Payment.query.get_or_404(payment_id)
+    invoice = payment.invoice
+    invoice_id = invoice.id
+    amount = payment.amount
+    
+    # Xóa payment
+    db.session.delete(payment)
+    
+    # Cập nhật lại trạng thái hóa đơn
+    invoice.update_status()
+    
+    db.session.commit()
+    
+    flash(f'✅ Đã xóa thanh toán {amount:,.0f}đ! Trạng thái hóa đơn đã được cập nhật.', 'success')
+    return redirect(url_for('invoices.view_invoice', id=invoice_id))
+
+
+# ============================================
+# 7. XÓA HÓA ĐƠN
 # ============================================
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required

@@ -151,11 +151,18 @@
                                 <td class="text-end text-success"><h5 class="mb-0">{{ "{:,.0f}".format(invoice.paid_amount) }}đ</h5></td>
                             </tr>
 
-                            <!-- Còn nợ -->
+                            <!-- Còn nợ hoặc Thanh toán thừa -->
+                            {% if invoice.overpaid_amount > 0 %}
+                            <tr class="table-warning">
+                                <td colspan="2"><strong>⚠️ THANH TOÁN THỪA</strong></td>
+                                <td class="text-end text-warning"><h4 class="mb-0">{{ "{:,.0f}".format(invoice.overpaid_amount) }}đ</h4></td>
+                            </tr>
+                            {% else %}
                             <tr class="table-warning">
                                 <td colspan="2"><strong>CÒN NỢ</strong></td>
                                 <td class="text-end text-danger"><h4 class="mb-0">{{ "{:,.0f}".format(invoice.remaining_amount) }}đ</h4></td>
                             </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -176,6 +183,9 @@
                                     <th>Số tiền</th>
                                     <th>Phương thức</th>
                                     <th>Ghi chú</th>
+                                    {% if current_user.role in ['admin', 'manager'] %}
+                                    <th>Thao tác</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,6 +201,16 @@
                                         {% endif %}
                                     </td>
                                     <td>{{ payment.notes or '-' }}</td>
+                                    {% if current_user.role in ['admin', 'manager'] %}
+                                    <td>
+                                        <form method="POST" action="{{ url_for('invoices.delete_payment', payment_id=payment.id) }}" 
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa thanh toán này?');" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa thanh toán">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% endif %}
                                 </tr>
                                 {% endfor %}
                             </tbody>

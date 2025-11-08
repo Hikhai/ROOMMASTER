@@ -242,10 +242,20 @@ class Invoice(db.Model):
         """Số tiền còn nợ (VNĐ)"""
         return max(0, self.total_amount - self.paid_amount)
     
+    @property
+    def overpaid_amount(self):
+        """Số tiền thanh toán thừa (VNĐ)"""
+        return max(0, self.paid_amount - self.total_amount)
+    
     def update_status(self):
         """
         Cập nhật trạng thái hóa đơn dựa trên số tiền đã thanh toán
         Tự động set payment_date khi thanh toán đủ
+        
+        Xử lý 3 trường hợp:
+        - paid == 0: unpaid
+        - 0 < paid < total: partial
+        - paid >= total: paid (kể cả thanh toán thừa)
         """
         paid = self.paid_amount
         
@@ -284,6 +294,16 @@ class Invoice(db.Model):
             return delta.days
         
         return 0
+    
+    @property
+    def is_overdue(self):
+        """
+        Kiểm tra hóa đơn có quá hạn không
+        
+        Returns:
+            bool: True nếu quá hạn và chưa thanh toán đủ
+        """
+        return self.days_overdue > 0
     
     @property
     def overdue_level(self):

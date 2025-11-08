@@ -172,6 +172,66 @@ python optimize_production.py
 - Web tab → Log files → Error log
 - Hoặc trong console: `tail -f /var/log/yourusername.pythonanywhere.com.error.log`
 
+### 🔄 Cập nhật code mới từ GitHub
+
+Khi bạn đã commit code mới lên GitHub và muốn cập nhật trên PythonAnywhere:
+
+```bash
+# Bước 1: Mở Bash Console trên PythonAnywhere
+cd ~/ROOMMASTER
+
+# Bước 2: Kích hoạt virtualenv
+workon roommaster-env
+
+# Bước 3: Pull code mới từ GitHub
+git pull origin main
+
+# Bước 4: Cài đặt dependencies mới (nếu có)
+pip install -r requirements.txt
+
+# Bước 5: Chạy migrations/optimizations (nếu có thay đổi DB)
+python migrate_db.py  # Nếu có thay đổi schema
+python optimize_production.py  # Nếu thêm indexes mới
+
+# Bước 6: Backup database trước khi cập nhật (khuyến nghị)
+python backup_db.py
+
+# Bước 7: Minify static files mới (nếu có thay đổi CSS/JS)
+python minify_static.py
+```
+
+**Bước 8: Reload Web App**
+- Vào Web tab → Click nút **Reload** màu xanh
+- Hoặc dùng lệnh: `touch /var/www/yourusername_pythonanywhere_com_wsgi.py`
+
+**Kiểm tra:**
+```bash
+# Xem commit hiện tại
+git log -1
+
+# Kiểm tra có lỗi không
+tail -f /var/log/yourusername.pythonanywhere.com.error.log
+```
+
+**⚠️ Lưu ý:**
+- Luôn backup database trước khi update
+- Nếu có lỗi conflict: `git stash` → `git pull` → `git stash pop`
+- Nếu thay đổi WSGI config: Edit lại file WSGI và reload
+
+**🔥 Quick Update Script:**
+Tạo file `update.sh` trong PythonAnywhere để update nhanh:
+```bash
+#!/bin/bash
+cd ~/ROOMMASTER
+git pull origin main
+pip install -r requirements.txt
+python backup_db.py
+python optimize_production.py
+echo "✅ Update complete! Remember to RELOAD web app."
+```
+
+Chạy: `bash update.sh`
+
 ---
 
 ## 🚂 2. RENDER.COM (⭐⭐⭐⭐)

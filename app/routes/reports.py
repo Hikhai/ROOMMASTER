@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request
 from flask_login import login_required
 from app import db
 from app.models import Invoice, Room, Tenant, Payment
+from app.services.payment_service import PaymentService
 from sqlalchemy import func, extract
 from datetime import datetime
 
@@ -100,16 +101,23 @@ def tenants():
 @bp.route('/overdue')
 @login_required
 def overdue():
-    """Overdue invoices report"""
-    now = datetime.now()
-    overdue_invoices = Invoice.query.filter(
-        Invoice.status.in_(['pending', 'overdue']),
-        Invoice.due_date < now
-    ).order_by(Invoice.due_date).all()
+    """
+    Báo cáo công nợ chi tiết
+    Phân loại theo mức độ: warning (1-5 ngày), danger (5-10 ngày), critical (>10 ngày)
+    """
+    month = request.args.get('month', type=int)
+    year = request.args.get('year', datetime.now().year, type=int)
     
-    total_overdue = sum(inv.total_amount for inv in overdue_invoices)
+    # Lấy báo cáo công nợ từ PaymentService
+    debt_report = PaymentService.get_debt_report(month=month, year=year)
+    
+    # Lấy tổng hợp thu tiền
+    collection_summary = PaymentService.get_collection_summary(month=month, year=year)
     
     return render_template('reports/overdue.html',
-                         overdue_invoices=overdue_invoices,
-                         total_overdue=total_overdue,
-                         now=now)
+                         debt_report=debt_report,
+                         collection_summary=collection_summary,
+                         month=month,
+                         year=year,
+                         now=datetime.now())
+

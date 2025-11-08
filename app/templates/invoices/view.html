@@ -48,6 +48,9 @@
                             <p><strong>Hạn thanh toán:</strong> 
                                 {% if invoice.due_date %}
                                     {{ invoice.due_date.strftime('%d/%m/%Y') }}
+                                    {% if invoice.days_overdue > 0 %}
+                                    <br>{{ invoice.overdue_badge|safe }}
+                                    {% endif %}
                                 {% else %}
                                     <span class="text-muted">Chưa đặt</span>
                                 {% endif %}
@@ -55,6 +58,9 @@
                             <p><strong>Trạng thái:</strong>
                                 {% if invoice.status == 'paid' %}
                                     <span class="badge bg-success">Đã thanh toán</span>
+                                    {% if invoice.payment_date %}
+                                    <br><small>Ngày: {{ invoice.payment_date.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    {% endif %}
                                 {% elif invoice.status == 'partial' %}
                                     <span class="badge bg-warning">Thanh toán 1 phần</span>
                                 {% else %}

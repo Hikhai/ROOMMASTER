@@ -32,6 +32,16 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Tháng/Năm:</strong> {{ invoice.month }}/{{ invoice.year }}</p>
+                            <p><strong>Hạn thanh toán:</strong> 
+                                {% if invoice.due_date %}
+                                    {{ invoice.due_date.strftime('%d/%m/%Y') }}
+                                    {% if invoice.days_overdue > 0 %}
+                                    <br>{{ invoice.overdue_badge|safe }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Chưa đặt</span>
+                                {% endif %}
+                            </p>
                             <p><strong>Trạng thái:</strong>
                                 {% if invoice.status == 'paid' %}
                                     <span class="badge bg-success">Đã thanh toán</span>
@@ -64,6 +74,17 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Cảnh báo nếu quá hạn -->
+                    {% if invoice.days_overdue > 0 %}
+                    <div class="alert alert-{{ 'warning' if invoice.overdue_level == 'warning' else 'danger' }}">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Cảnh báo:</strong> Hóa đơn đã quá hạn <strong>{{ invoice.days_overdue }} ngày</strong>!
+                        {% if invoice.overdue_level == 'critical' %}
+                        <br><small>Đây là khoản nợ xấu, vui lòng xử lý ngay!</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -128,7 +149,7 @@
                             <a href="{{ url_for('invoices.view_invoice', id=invoice.id) }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitPayment">
                                 <i class="fas fa-check"></i> Xác nhận thanh toán
                             </button>
                         </div>
@@ -181,15 +202,72 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const amountInput = document.getElementById('amount');
+    const submitBtn = document.getElementById('submitPayment');
+    const form = submitBtn.closest('form');
     const remaining = parseFloat('{{ invoice.remaining_amount }}');
     const half = parseFloat('{{ invoice.remaining_amount / 2 }}');
     const roomPrice = parseFloat('{{ invoice.room_price }}');
+    
+    // Validation khi nhập số tiền
+    amountInput.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        
+        // Xóa các alert cũ
+        const oldAlerts = document.querySelectorAll('.dynamic-alert');
+        oldAlerts.forEach(alert => alert.remove());
+        
+        if (amount > remaining) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger dynamic-alert mt-2';
+            alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Cảnh báo:</strong> Số tiền vượt quá số tiền còn nợ!';
+            this.parentElement.appendChild(alert);
+            submitBtn.disabled = true;
+        } else if (amount <= 0 && this.value !== '') {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger dynamic-alert mt-2';
+            alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Lỗi:</strong> Số tiền phải lớn hơn 0!';
+            this.parentElement.appendChild(alert);
+            submitBtn.disabled = true;
+        } else if (amount > 0 && amount < remaining) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-info dynamic-alert mt-2';
+            alert.innerHTML = `<i class="fas fa-info-circle"></i> Thanh toán <strong>${amount.toLocaleString('vi-VN')}đ</strong>, còn nợ <strong>${(remaining - amount).toLocaleString('vi-VN')}đ</strong>`;
+            this.parentElement.appendChild(alert);
+            submitBtn.disabled = false;
+        } else if (amount === remaining) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success dynamic-alert mt-2';
+            alert.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Thanh toán đủ!</strong> Hóa đơn sẽ chuyển sang trạng thái "Đã thanh toán"';
+            this.parentElement.appendChild(alert);
+            submitBtn.disabled = false;
+        } else {
+            submitBtn.disabled = false;
+        }
+    });
+    
+    // Xác nhận khi thanh toán từng phần
+    form.addEventListener('submit', function(e) {
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        if (amount > 0 && amount < remaining) {
+            const confirmed = confirm(
+                `Bạn đang thanh toán ${amount.toLocaleString('vi-VN')}đ cho hóa đơn ${remaining.toLocaleString('vi-VN')}đ.\n\n` +
+                `Sau khi thanh toán, còn nợ: ${(remaining - amount).toLocaleString('vi-VN')}đ\n\n` +
+                `Bạn có chắc chắn muốn tiếp tục?`
+            );
+            
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        }
+    });
     
     // Nút thanh toán hết
     const btnFull = document.getElementById('btnPayFull');
     if (btnFull) {
         btnFull.addEventListener('click', function() {
             amountInput.value = Math.round(remaining);
+            amountInput.dispatchEvent(new Event('input'));
         });
     }
     
@@ -198,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnHalf) {
         btnHalf.addEventListener('click', function() {
             amountInput.value = Math.round(half);
+            amountInput.dispatchEvent(new Event('input'));
         });
     }
     
@@ -205,9 +284,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnRoom = document.getElementById('btnPayRoom');
     if (btnRoom) {
         btnRoom.addEventListener('click', function() {
-            amountInput.value = Math.round(roomPrice);
+            const amount = Math.min(Math.round(roomPrice), remaining);
+            amountInput.value = amount;
+            amountInput.dispatchEvent(new Event('input'));
         });
     }
+    
+    // Trigger validation khi load trang
+    amountInput.dispatchEvent(new Event('input'));
 });
 </script>
 {% endblock %}

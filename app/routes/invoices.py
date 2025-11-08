@@ -223,13 +223,22 @@ def view_invoice(id):
 def edit_invoice(id):
     """
     Chỉnh sửa hóa đơn (chỉ cho phép nếu chưa thanh toán đủ)
+    
+    LƯU Ý QUAN TRỌNG:
+    - Chỉ cho phép sửa hóa đơn chưa thanh toán đủ
+    - Sửa số điện/nước sẽ ảnh hưởng đến tháng sau (số cũ tháng sau)
+    - Cần cảnh báo người dùng về ảnh hưởng này
     """
     invoice = Invoice.query.get_or_404(id)
     
-    # Không cho sửa hóa đơn đã thanh toán đầy đủ
+    # ✅ VALIDATION 1: Không cho sửa hóa đơn đã thanh toán đầy đủ
     if invoice.status == 'paid':
-        flash('⚠️ Không thể sửa hóa đơn đã thanh toán đủ!', 'warning')
+        flash('⚠️ Không thể sửa hóa đơn đã thanh toán đủ! Vui lòng liên hệ Admin nếu cần điều chỉnh.', 'warning')
         return redirect(url_for('invoices.view_invoice', id=invoice.id))
+    
+    # Lấy số điện/nước cũ để so sánh
+    old_electric_new = invoice.electric_new
+    old_water_new = invoice.water_new
     
     if request.method == 'POST':
         # Cập nhật thông tin
@@ -253,6 +262,27 @@ def edit_invoice(id):
             flash(error_msg, 'danger')
             return redirect(url_for('invoices.edit_invoice', id=invoice.id))
         
+        # ✅ CẢNH BÁO: Kiểm tra xem có thay đổi số điện/nước mới không
+        warnings = []
+        if invoice.electric_new != old_electric_new:
+            warnings.append(f'Số điện mới đã thay đổi từ {old_electric_new} → {invoice.electric_new}')
+        if invoice.water_new != old_water_new:
+            warnings.append(f'Số nước mới đã thay đổi từ {old_water_new} → {invoice.water_new}')
+        
+        # Kiểm tra xem có hóa đơn tháng sau không
+        next_month = invoice.month + 1 if invoice.month < 12 else 1
+        next_year = invoice.year if invoice.month < 12 else invoice.year + 1
+        next_invoice = Invoice.query.filter_by(
+            room_id=invoice.room_id,
+            month=next_month,
+            year=next_year
+        ).first()
+        
+        if warnings and next_invoice:
+            warning_msg = '⚠️ <strong>Cảnh báo:</strong> ' + ', '.join(warnings)
+            warning_msg += f'<br>Bạn cần kiểm tra và sửa lại <a href="{url_for("invoices.edit_invoice", id=next_invoice.id)}" class="alert-link">hóa đơn tháng {next_month}/{next_year}</a> (số cũ phải = {invoice.electric_new} điện, {invoice.water_new} nước)'
+            flash(warning_msg, 'warning')
+        
         # Tính lại tổng tiền
         invoice.calculate_total()
         
@@ -265,7 +295,16 @@ def edit_invoice(id):
         return redirect(url_for('invoices.view_invoice', id=invoice.id))
     
     # GET: Hiển thị form
-    return render_template('invoices/edit.html', invoice=invoice)
+    # Kiểm tra xem có hóa đơn tháng sau không
+    next_month = invoice.month + 1 if invoice.month < 12 else 1
+    next_year = invoice.year if invoice.month < 12 else invoice.year + 1
+    next_invoice = Invoice.query.filter_by(
+        room_id=invoice.room_id,
+        month=next_month,
+        year=next_year
+    ).first()
+    
+    return render_template('invoices/edit.html', invoice=invoice, next_invoice=next_invoice)
 
 
 # ============================================
@@ -278,8 +317,19 @@ def payment_invoice(id):
     """
     Ghi nhận thanh toán cho hóa đơn
     Hỗ trợ thanh toán từng phần (partial payment)
+    
+    Validation rules:
+    - Không cho phép thanh toán hóa đơn đã thanh toán đủ
+    - Số tiền phải > 0
+    - Số tiền không được vượt quá số tiền còn nợ
+    - Phương thức thanh toán: cash, bank_transfer
     """
     invoice = Invoice.query.get_or_404(id)
+    
+    # ✅ VALIDATION 1: Không cho phép thanh toán hóa đơn đã thanh toán đủ
+    if invoice.status == 'paid' and invoice.remaining_amount == 0:
+        flash('⚠️ Hóa đơn này đã được thanh toán đầy đủ! Không thể thêm thanh toán.', 'warning')
+        return redirect(url_for('invoices.view_invoice', id=invoice.id))
     
     if request.method == 'POST':
         amount = request.form.get('amount', 0, type=float)
@@ -287,14 +337,22 @@ def payment_invoice(id):
         payment_date_str = request.form.get('payment_date')
         notes = request.form.get('notes', '').strip()
         
-        # Validation
+        # ✅ VALIDATION 2: Số tiền phải > 0
         if amount <= 0:
-            flash('⚠️ Số tiền thanh toán phải > 0!', 'danger')
+            flash('❌ Số tiền thanh toán phải lớn hơn 0!', 'danger')
             return redirect(url_for('invoices.payment_invoice', id=invoice.id))
         
+        # ✅ VALIDATION 3: Số tiền không được vượt quá số tiền còn nợ
         remaining = invoice.remaining_amount
         if amount > remaining:
-            flash(f'⚠️ Số tiền thanh toán ({amount:,.0f}đ) lớn hơn số tiền còn nợ ({remaining:,.0f}đ)!', 'danger')
+            flash(f'❌ Số tiền thanh toán ({amount:,.0f}đ) lớn hơn số tiền còn nợ ({remaining:,.0f}đ)! '
+                  f'Vui lòng nhập số tiền không vượt quá {remaining:,.0f}đ.', 'danger')
+            return redirect(url_for('invoices.payment_invoice', id=invoice.id))
+        
+        # ✅ VALIDATION 4: Phương thức thanh toán hợp lệ
+        valid_methods = ['cash', 'bank_transfer']
+        if payment_method not in valid_methods:
+            flash('❌ Phương thức thanh toán không hợp lệ!', 'danger')
             return redirect(url_for('invoices.payment_invoice', id=invoice.id))
         
         # Parse payment date
@@ -302,6 +360,9 @@ def payment_invoice(id):
             payment_date = datetime.strptime(payment_date_str, '%Y-%m-%d')
         except:
             payment_date = datetime.now()
+        
+        # Kiểm tra xem thanh toán này có hoàn tất hóa đơn không
+        will_be_fully_paid = (invoice.paid_amount + amount) >= invoice.total_amount
         
         # Tạo payment mới
         payment = Payment(
@@ -319,7 +380,15 @@ def payment_invoice(id):
         
         db.session.commit()
         
-        flash(f'✅ Đã ghi nhận thanh toán {amount:,.0f}đ!', 'success')
+        # Flash message với thông tin chi tiết
+        if will_be_fully_paid:
+            flash(f'✅ Đã ghi nhận thanh toán {amount:,.0f}đ! '
+                  f'Hóa đơn đã được thanh toán đầy đủ.', 'success')
+        else:
+            new_remaining = invoice.remaining_amount
+            flash(f'✅ Đã ghi nhận thanh toán {amount:,.0f}đ! '
+                  f'Còn nợ: {new_remaining:,.0f}đ', 'success')
+        
         return redirect(url_for('invoices.view_invoice', id=invoice.id))
     
     # GET: Hiển thị form

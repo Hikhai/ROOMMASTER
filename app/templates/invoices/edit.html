@@ -30,6 +30,34 @@
                         </div>
                     </div>
 
+                    <!-- Cảnh báo nếu có hóa đơn tháng sau -->
+                    {% if next_invoice %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> <strong>Cảnh báo quan trọng</strong></h6>
+                        <p class="mb-2">Phòng này đã có hóa đơn tháng sau ({{ next_invoice.month }}/{{ next_invoice.year }}).</p>
+                        <p class="mb-2">
+                            <strong>Nếu bạn thay đổi số điện/nước mới của hóa đơn này:</strong>
+                        </p>
+                        <ul class="mb-0">
+                            <li>Bạn phải kiểm tra và cập nhật lại <strong>số cũ</strong> của 
+                                <a href="{{ url_for('invoices.edit_invoice', id=next_invoice.id) }}" class="alert-link">
+                                    hóa đơn tháng {{ next_invoice.month }}/{{ next_invoice.year }}
+                                </a>
+                            </li>
+                            <li>Số cũ tháng sau phải = số mới tháng này</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Cảnh báo nếu đã có thanh toán -->
+                    {% if invoice.paid_amount > 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> 
+                        Hóa đơn này đã có thanh toán <strong>{{ "{:,.0f}".format(invoice.paid_amount) }}đ</strong>.
+                        Nếu bạn thay đổi tổng tiền, số tiền còn nợ sẽ được tính lại.
+                    </div>
+                    {% endif %}
+
                     <form method="post" id="editInvoiceForm">
                         <!-- Điện -->
                         <h5 class="mb-3"><i class="fas fa-bolt text-warning"></i> Tiền điện</h5>

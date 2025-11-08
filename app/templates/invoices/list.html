@@ -112,10 +112,19 @@
                             <td>
                                 {% if invoice.status == 'paid' %}
                                     <span class="badge bg-success">Đã thanh toán</span>
+                                    {% if invoice.payment_date %}
+                                    <br><small class="text-muted">{{ invoice.payment_date.strftime('%d/%m/%Y') }}</small>
+                                    {% endif %}
                                 {% elif invoice.status == 'partial' %}
                                     <span class="badge bg-warning">Thanh toán 1 phần</span>
+                                    {% if invoice.days_overdue > 0 %}
+                                    <br>{{ invoice.overdue_badge|safe }}
+                                    {% endif %}
                                 {% else %}
                                     <span class="badge bg-danger">Chưa thanh toán</span>
+                                    {% if invoice.days_overdue > 0 %}
+                                    <br>{{ invoice.overdue_badge|safe }}
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td class="action-cell">

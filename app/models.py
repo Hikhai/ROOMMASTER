@@ -189,6 +189,7 @@ class Invoice(db.Model):
     # Ngày tháng
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime)  # Hạn thanh toán
+    payment_date = db.Column(db.DateTime)  # Ngày thanh toán đủ (khi status = 'paid')
     
     notes = db.Column(db.Text)  # Ghi chú
     
@@ -242,15 +243,85 @@ class Invoice(db.Model):
         return max(0, self.total_amount - self.paid_amount)
     
     def update_status(self):
-        """Cập nhật trạng thái hóa đơn dựa trên số tiền đã thanh toán"""
+        """
+        Cập nhật trạng thái hóa đơn dựa trên số tiền đã thanh toán
+        Tự động set payment_date khi thanh toán đủ
+        """
         paid = self.paid_amount
         
         if paid == 0:
             self.status = 'unpaid'
+            self.payment_date = None
         elif paid >= self.total_amount:
             self.status = 'paid'
+            # Chỉ set payment_date lần đầu tiên khi chuyển sang paid
+            if self.payment_date is None:
+                self.payment_date = datetime.utcnow()
         else:
             self.status = 'partial'
+            self.payment_date = None
+    
+    @property
+    def days_overdue(self):
+        """
+        Tính số ngày quá hạn
+        
+        Returns:
+            int: Số ngày quá hạn (0 nếu chưa quá hạn hoặc đã thanh toán đủ)
+        """
+        # Nếu đã thanh toán đủ, không tính quá hạn
+        if self.status == 'paid':
+            return 0
+        
+        # Nếu không có due_date, không tính quá hạn
+        if not self.due_date:
+            return 0
+        
+        # Tính số ngày từ due_date đến hiện tại
+        now = datetime.utcnow()
+        if now > self.due_date:
+            delta = now - self.due_date
+            return delta.days
+        
+        return 0
+    
+    @property
+    def overdue_level(self):
+        """
+        Phân loại mức độ nợ quá hạn
+        
+        Returns:
+            str: 'ok' (không nợ), 'warning' (1-5 ngày), 'danger' (5-10 ngày), 'critical' (>10 ngày)
+        """
+        days = self.days_overdue
+        
+        if days == 0:
+            return 'ok'
+        elif days <= 5:
+            return 'warning'
+        elif days <= 10:
+            return 'danger'
+        else:
+            return 'critical'
+    
+    @property
+    def overdue_badge(self):
+        """
+        Lấy badge HTML cho trạng thái quá hạn
+        
+        Returns:
+            str: HTML badge string
+        """
+        days = self.days_overdue
+        
+        if days == 0:
+            return ''
+        elif days <= 5:
+            return f'<span class="badge bg-warning">Quá hạn {days} ngày</span>'
+        elif days <= 10:
+            return f'<span class="badge bg-danger">Nợ {days} ngày</span>'
+        else:
+            return f'<span class="badge bg-dark">Nợ xấu {days} ngày</span>'
 
 
 # ============================================

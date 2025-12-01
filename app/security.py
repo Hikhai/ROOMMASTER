@@ -96,7 +96,8 @@ def add_security_headers(response):
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " \
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " \
         "font-src 'self' https://cdn.jsdelivr.net; " \
-        "img-src 'self' data: https:; "
+        "img-src 'self' data: https:; " \
+        "connect-src 'self' https://cdn.jsdelivr.net; "
     
     # Referrer Policy
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'

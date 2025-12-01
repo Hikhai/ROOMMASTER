@@ -9,7 +9,7 @@ Run this script:
 """
 
 from app import create_app, db
-from app.models import Invoice
+from app.models import Invoice, Payment
 from datetime import datetime
 
 def migrate():
@@ -49,7 +49,7 @@ def migrate():
             
             for invoice in paid_invoices:
                 # Set payment_date to the last payment date, or created_at if no payments
-                last_payment = invoice.payments.order_by(Invoice.id.desc()).first()
+                last_payment = invoice.payments.order_by(Payment.id.desc()).first()
                 if last_payment:
                     invoice.payment_date = last_payment.payment_date
                 else:
